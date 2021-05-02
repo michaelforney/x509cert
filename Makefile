@@ -10,6 +10,7 @@ OBJ=\
 	asn1.o\
 	cert.o\
 	dn.o\
+	dn_string.o\
 	pkey.o\
 	req.o\
 	san.o\
