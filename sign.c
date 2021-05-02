@@ -1,7 +1,8 @@
+#include <assert.h>
 #include "x509cert.h"
 
 size_t
-x509cert_sign(const struct asn1_item *data, const struct x509cert_skey *key, const br_hash_class *hc, unsigned char *buf)
+x509cert_encode_sign_alg(int key, int hash, unsigned char *buf)
 {
 	static const unsigned char oid_ecdsa_sha256[] = {
 		/* OID 1.2.840.10045.4.3.2 */
@@ -13,28 +14,63 @@ x509cert_sign(const struct asn1_item *data, const struct x509cert_skey *key, con
 	};
 	static const unsigned char null[] = {0x05, 0x00};
 	struct asn1_item alg = {ASN1_SEQUENCE};
+	const unsigned char *oid = NULL, *params;
+	size_t len;
+
+	switch (key) {
+	case BR_KEYTYPE_RSA:
+		switch (hash) {
+		case br_sha256_ID: oid = oid_rsa_sha256; break;
+		}
+		params = null;
+		break;
+	case BR_KEYTYPE_EC:
+		switch (hash) {
+		case br_sha256_ID: oid = oid_ecdsa_sha256; break;
+		}
+		params = NULL;
+		break;
+	}
+	if (!oid)
+		return 0;
+	alg.len = asn1_copy(oid, NULL);
+	if (params)
+		alg.len += asn1_copy(params, NULL);
+	len = asn1_encode(&alg, NULL);
+	if (buf) {
+		unsigned char *pos = buf;
+		pos += asn1_encode(&alg, pos);
+		pos += asn1_copy(oid, pos);
+		if (params)
+			pos += asn1_copy(params, pos);
+		assert(pos - buf == len);
+	}
+	return len;
+}
+
+size_t
+x509cert_sign(const struct asn1_item *data, const struct x509cert_skey *key, const br_hash_class *hc, unsigned char *buf)
+{
 	struct asn1_item sig = {ASN1_BITSTRING};
 	struct asn1_item item = {ASN1_SEQUENCE};
-	const unsigned char *oid, *hashoid, *params;
+	const unsigned char *oid;
 	unsigned char *pos, *sigpos, *datapos, *newdatapos;
 	unsigned char hash[64];
+	int hashid;
 	size_t len, hashlen, sigmax;
 	br_hash_compat_context ctx;
 	const br_ec_impl *ec;
 
+	hashid = hc->desc >> BR_HASHDESC_ID_OFF & BR_HASHDESC_ID_MASK;
+	hashlen = hc->desc >> BR_HASHDESC_OUT_OFF & BR_HASHDESC_OUT_MASK;
 	switch (key->type) {
 	case BR_KEYTYPE_RSA:
-		switch (hc->desc >> BR_HASHDESC_ID_OFF & BR_HASHDESC_ID_MASK) {
-		case br_sha256_ID: oid = oid_rsa_sha256, hashoid = BR_HASH_OID_SHA256; break;
+		switch (hashid) {
+		case br_sha256_ID: oid = BR_HASH_OID_SHA256; break;
 		}
-		params = null;
 		sigmax = (key->u.rsa->n_bitlen + 7) / 8;
 		break;
 	case BR_KEYTYPE_EC:
-		switch (hc->desc >> BR_HASHDESC_ID_OFF & BR_HASHDESC_ID_MASK) {
-		case br_sha256_ID: oid = oid_ecdsa_sha256; break;
-		}
-		params = NULL;
 		/* assume maximum length until we compute the signature */
 		switch (key->u.ec->curve) {
 		case BR_EC_secp256r1: sigmax = 72; break;
@@ -46,14 +82,11 @@ x509cert_sign(const struct asn1_item *data, const struct x509cert_skey *key, con
 		return 0;
 	}
 
-	alg.len = asn1_copy(oid, NULL);
-	if (params)
-		alg.len += asn1_copy(params, NULL);
 	sig.len = ++sigmax;
 	item.len = asn1_encode(data, NULL);
 	if (item.len == 0)
 		return 0;
-	item.len += asn1_encode(&alg, NULL) + asn1_encode(&sig, NULL);
+	item.len += x509cert_encode_sign_alg(key->type, hashid, NULL) + asn1_encode(&sig, NULL);
 	len = asn1_encode(&item, NULL);
 
 	if (!buf)
@@ -67,19 +100,14 @@ x509cert_sign(const struct asn1_item *data, const struct x509cert_skey *key, con
 	hc->init(&ctx.vtable);
 	hc->update(&ctx.vtable, datapos, pos - datapos);
 	hc->out(&ctx.vtable, hash);
-	hashlen = hc->desc >> BR_HASHDESC_OUT_OFF & BR_HASHDESC_OUT_MASK;
 
-	pos += asn1_encode(&alg, pos);
-	pos += asn1_copy(oid, pos);
-	if (params)
-		pos += asn1_copy(params, pos);
-
+	pos += x509cert_encode_sign_alg(key->type, hashid, pos);
 	sigpos = pos;
 	pos += asn1_encode(&sig, pos);
 	*pos = 0;
 	switch (key->type) {
 	case BR_KEYTYPE_RSA:
-		if (br_rsa_pkcs1_sign_get_default()(hashoid, hash, hashlen, key->u.rsa, pos + 1) != 1)
+		if (br_rsa_pkcs1_sign_get_default()(oid, hash, hashlen, key->u.rsa, pos + 1) != 1)
 			return 0;
 		break;
 	case BR_KEYTYPE_EC:

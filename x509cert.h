@@ -57,6 +57,15 @@ size_t x509cert_encode_dn(const struct x509cert_dn *, unsigned char *);
 size_t x509cert_encode_pkey(const br_x509_pkey *, unsigned char *);
 
 /*
+ * Encode an X.509 AlgorithmIdentifier into a buffer (if it is not
+ * NULL) for the given signing key type (BR_KEYTYPE_*) and hash ID
+ * (br_*_ID).
+ *
+ * The encoded length of the AlgorithmIdentifier is returned.
+ */
+size_t x509cert_encode_sign_alg(int key, int hash, unsigned char *);
+
+/*
  * Encode a PKCS#10 CertificateRequestInfo into a buffer (if it is
  * not NULL).
  *
