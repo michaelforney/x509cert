@@ -8,6 +8,7 @@ LDLIBS=-l bearssl
 
 OBJ=\
 	asn1.o\
+	cert.o\
 	dn.o\
 	pkey.o\
 	req.o\

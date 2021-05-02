@@ -3,6 +3,7 @@
 
 #include <asn1.h>
 #include <bearssl.h>
+#include <time.h>
 
 struct x509cert_skey {
 	int type;
@@ -30,6 +31,17 @@ struct x509cert_req_info {
 	const struct asn1_item *alts;
 	size_t alts_len;
 	br_x509_pkey pkey;
+};
+
+struct x509cert_cert {
+	const struct x509cert_req_info *req;
+	struct asn1_uint serial;
+	struct {
+		int type;
+		int hash;
+	} alg;
+	const struct asn1_item *issuer;
+	time_t notbefore, notafter;
 };
 
 /*
@@ -81,6 +93,15 @@ size_t x509cert_encode_san(const struct asn1_item *, size_t, unsigned char *);
  * The encoded length of the CertificateRequestInfo is returned.
  */
 size_t x509cert_encode_req_info(const struct x509cert_req_info *, unsigned char *);
+
+/*
+ * Encode an X.509 TBSCertificate into a buffer (if it is not NULL).
+ *
+ * This is the to-be-signed data in a Certificate.
+ *
+ * The encoded length of the TBSCertificate is returned.
+ */
+size_t x509cert_encode_cert(const struct x509cert_cert *, unsigned char *);
 
 /*
  * Sign an ASN.1 item, and encode the item and its signature as an
