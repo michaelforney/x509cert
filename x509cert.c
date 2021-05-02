@@ -5,7 +5,7 @@
 #include "arg.h"
 
 static const char *argv0;
-static struct x509cert_req_info req;
+static struct x509cert_req req;
 static struct x509cert_skey skey;
 static struct asn1_item *alts;
 static size_t alts_len;

@@ -26,7 +26,7 @@ struct x509cert_dn {
 };
 
 /* PKCS#10 CertificateRequestInfo */
-struct x509cert_req_info {
+struct x509cert_req {
 	struct x509cert_dn name;
 	const struct asn1_item *alts;
 	size_t alts_len;
@@ -34,7 +34,7 @@ struct x509cert_req_info {
 };
 
 struct x509cert_cert {
-	const struct x509cert_req_info *req;
+	const struct x509cert_req *req;
 	struct asn1_uint serial;
 	struct {
 		int type;
@@ -92,7 +92,7 @@ size_t x509cert_encode_san(const struct asn1_item *, size_t, unsigned char *);
  *
  * The encoded length of the CertificateRequestInfo is returned.
  */
-size_t x509cert_encode_req_info(const struct x509cert_req_info *, unsigned char *);
+size_t x509cert_encode_req(const struct x509cert_req *, unsigned char *);
 
 /*
  * Encode an X.509 TBSCertificate into a buffer (if it is not NULL).
@@ -116,6 +116,6 @@ size_t x509cert_encode_cert(const struct x509cert_cert *, unsigned char *);
  */
 size_t x509cert_sign(const struct asn1_item *, const struct x509cert_skey *, const br_hash_class *, unsigned char *);
 
-size_t x509cert_req(const struct x509cert_req_info *, const struct x509cert_skey *, const br_hash_class *, unsigned char *);
+size_t x509cert_req(const struct x509cert_req *, const struct x509cert_skey *, const br_hash_class *, unsigned char *);
 
 #endif

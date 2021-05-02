@@ -4,7 +4,7 @@
 #include "asn1.h"
 
 size_t
-x509cert_encode_req_info(const struct x509cert_req_info *info, unsigned char *buf)
+x509cert_encode_req(const struct x509cert_req *req, unsigned char *buf)
 {
 	static const unsigned char ver[] = {0x02, 0x01, 0x00};
 	static const unsigned char oid_extensionRequest[] = {
@@ -19,13 +19,13 @@ x509cert_encode_req_info(const struct x509cert_req_info *info, unsigned char *bu
 	unsigned char *pos;
 	size_t len;
 
-	cri.len = x509cert_encode_pkey(&info->pkey, NULL);
+	cri.len = x509cert_encode_pkey(&req->pkey, NULL);
 	if (!cri.len)
 		return 0;
-	cri.len += sizeof(ver) + x509cert_encode_dn(&info->name, NULL);
+	cri.len += sizeof(ver) + x509cert_encode_dn(&req->name, NULL);
 
-	if (info->alts_len > 0) {
-		exts.len = x509cert_encode_san(info->alts, info->alts_len, NULL);
+	if (req->alts_len > 0) {
+		exts.len = x509cert_encode_san(req->alts, req->alts_len, NULL);
 		vals.len = asn1_encode(&exts, NULL);
 		attr.len = sizeof(oid_extensionRequest) + asn1_encode(&vals, NULL);
 		attrs.len += asn1_encode(&attr, NULL);
@@ -40,38 +40,38 @@ x509cert_encode_req_info(const struct x509cert_req_info *info, unsigned char *bu
 	pos = buf;
 	pos += asn1_encode(&cri, pos);
 	pos += asn1_copy(ver, pos);
-	pos += x509cert_encode_dn(&info->name, pos);
-	pos += x509cert_encode_pkey(&info->pkey, pos);
+	pos += x509cert_encode_dn(&req->name, pos);
+	pos += x509cert_encode_pkey(&req->pkey, pos);
 	pos += asn1_encode(&attrs, pos);
-	if (info->alts_len > 0) {
+	if (req->alts_len > 0) {
 		pos += asn1_encode(&attr, pos);
 		pos += asn1_copy(oid_extensionRequest, pos);
 		pos += asn1_encode(&vals, pos);
 		pos += asn1_encode(&exts, pos);
-		pos += x509cert_encode_san(info->alts, info->alts_len, pos);
+		pos += x509cert_encode_san(req->alts, req->alts_len, pos);
 	}
 
 	assert(pos - buf == len);
 	return len;
 }
 
-struct req_info_item {
+struct req_item {
 	struct asn1_item item;
-	const struct x509cert_req_info *info;
+	const struct x509cert_req *req;
 };
 
 static size_t
 encode_cri(const struct asn1_item *item, unsigned char *buf)
 {
-	struct req_info_item *r = (void *)item;
+	struct req_item *r = (void *)item;
 
-	return x509cert_encode_req_info(r->info, buf);
+	return x509cert_encode_req(r->req, buf);
 }
 
 size_t
-x509cert_req(const struct x509cert_req_info *info, const struct x509cert_skey *key, const br_hash_class *hc, unsigned char *buf)
+x509cert_req(const struct x509cert_req *req, const struct x509cert_skey *key, const br_hash_class *hc, unsigned char *buf)
 {
-	struct req_info_item r = {.item.enc = encode_cri, .info = info};
+	struct req_item r = {.item.enc = encode_cri, .req = req};
 
 	return x509cert_sign(&r.item, key, hc, buf);
 }
