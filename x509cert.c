@@ -193,7 +193,7 @@ load_key(const char *name, br_x509_pkey *pkey, struct x509cert_skey *skey)
 int
 main(int argc, char *argv[])
 {
-	int doreq = 0;
+	int rflag = 0;
 	unsigned char *buf, *out, *pem;
 	size_t buflen, outlen, pemlen;
 	const char *banner;
@@ -210,7 +210,7 @@ main(int argc, char *argv[])
 	case 'k':
 		break;
 	case 'r':
-		doreq = 1;
+		rflag = 1;
 		break;
 	case 's':
 		break;
@@ -229,7 +229,7 @@ main(int argc, char *argv[])
 
 	load_key(argv[1], &req.pkey, &skey);
 
-	if (doreq) {
+	if (rflag) {
 		banner = "CERTIFICATE REQUEST";
 		req.alts = alts;
 		req.alts_len = alts_len;

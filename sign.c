@@ -57,7 +57,7 @@ x509cert_sign(const struct asn1_item *data, const struct x509cert_skey *key, con
 	unsigned char *pos, *sigpos, *datapos, *newdatapos;
 	unsigned char hash[64];
 	int hashid;
-	size_t len, hashlen, sigmax = 0;
+	size_t hashlen, sigmax = 0;
 	br_hash_compat_context ctx;
 	const br_ec_impl *ec;
 
@@ -87,10 +87,9 @@ x509cert_sign(const struct asn1_item *data, const struct x509cert_skey *key, con
 	if (item.len == 0)
 		return 0;
 	item.len += x509cert_encode_sign_alg(key->type, hashid, NULL) + asn1_encode(&sig, NULL);
-	len = asn1_encode(&item, NULL);
 
 	if (!buf)
-		return len;
+		return asn1_encode(&item, NULL);
 
 	pos = buf;
 	pos += asn1_encode(&item, pos);
@@ -135,11 +134,9 @@ x509cert_sign(const struct asn1_item *data, const struct x509cert_skey *key, con
 	 * to the encoding of the actual signature, move the inner
 	 * data into the correct position.
 	 */
-
 	item.len -= sigmax - sig.len;
 	newdatapos = buf + asn1_encode(&item, buf);
 	memmove(newdatapos, datapos, pos - datapos);
 
 	return (newdatapos - buf) + (pos - datapos);
 }
-
