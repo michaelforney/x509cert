@@ -31,11 +31,16 @@ xmalloc(size_t n)
 }
 
 static void *
-xcalloc(size_t n, size_t m)
+xmallocarray(size_t n, size_t m)
 {
 	void *p;
 
-	p = calloc(n, m);
+	if (m && n > SIZE_MAX / m) {
+		errno = ENOMEM;
+		p = NULL;
+	} else {
+		p = malloc(n * m);
+	}
 	if (!p) {
 		perror(NULL);
 		exit(1);
@@ -198,8 +203,10 @@ main(int argc, char *argv[])
 	size_t buflen, outlen, pemlen;
 	const char *banner;
 
+	/* at most one subjectAltName per argument */
 	if (argc > 3)
-		alts = xcalloc(argc - 3, sizeof(alts[0]));
+		alts = xmallocarray(argc - 3, sizeof(alts[0]));
+
 	argv0 = argc ? argv[0] : "x509cert";
 	ARGBEGIN {
 	case 'a':
