@@ -3,7 +3,7 @@
 
 -include config.mk
 
-CFLAGS+=-Wall -Wpedantic -I .
+CFLAGS+=-Wall -Wpedantic -Wno-format-truncation -I .
 LDLIBS=-l bearssl
 
 OBJ=\
