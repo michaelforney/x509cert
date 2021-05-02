@@ -11,9 +11,11 @@ static struct asn1_item *alts;
 static size_t alts_len;
 
 static void
-usage(void)
+usage(const char *msg)
 {
-	fprintf(stderr, "usage: %s [-r] [-a altname]... [-c issuercert] [-k issuerkey] [-s serial] subject key [start [end]]\n", argv0);
+	if (msg)
+		fprintf(stderr, "%s: %s\n", argv0, msg);
+	fprintf(stderr, "usage: %s [-r] [-a altname]... [-c issuercert] [-k issuerkey] [-d duration] [-s serial] subject key\n", argv0);
 	exit(1);
 }
 
@@ -199,9 +201,11 @@ int
 main(int argc, char *argv[])
 {
 	int rflag = 0;
+	unsigned long duration = 32ul * 24 * 60 * 60;
 	unsigned char *buf, *out, *pem;
 	size_t buflen, outlen, pemlen;
 	const char *banner;
+	char *end;
 
 	/* at most one subjectAltName per argument */
 	if (argc > 3)
@@ -210,9 +214,14 @@ main(int argc, char *argv[])
 	argv0 = argc ? argv[0] : "x509cert";
 	ARGBEGIN {
 	case 'a':
-		add_alt(EARGF(usage()));
+		add_alt(EARGF(usage(NULL)));
 		break;
 	case 'c':
+		break;
+	case 'd':
+		duration = strtoul(EARGF(usage(NULL)), &end, 0);
+		if (*end)
+			usage("invalid duration");
 		break;
 	case 'k':
 		break;
@@ -222,10 +231,10 @@ main(int argc, char *argv[])
 	case 's':
 		break;
 	default:
-		usage();
+		usage(NULL);
 	} ARGEND
-	if (argc < 2 || argc > 4)
-		usage();
+	if (argc < 2 || argc > 3)
+		usage(NULL);
 
 	buflen = strlen(argv[0]);
 	buf = xmalloc(buflen);
