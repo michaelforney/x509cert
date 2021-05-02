@@ -11,6 +11,7 @@ OBJ=\
 	dn.o\
 	pkey.o\
 	req.o\
+	san.o\
 	sign.o
 
 all: libx509cert.a x509cert
