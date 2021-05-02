@@ -11,14 +11,6 @@ x509cert_sign(const struct asn1_item *data, const struct x509cert_skey *key, con
 		/* OID 1.2.840.113549.1.1.11 */
 		0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x0b,
 	};
-	static const unsigned char oid_secp256r1[] = {
-		/* OID 1.2.840.10045.3.1.7 - secp384r1 */
-		0x06, 0x08, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x03, 0x01, 0x07,
-	};
-	static const unsigned char oid_secp384r1[] = {
-		/* OID 1.3.132.0.34 - secp384r1 */
-		0x06, 0x05, 0x2b, 0x81, 0x04, 0x00, 0x22,
-	};
 	static const unsigned char null[] = {0x05, 0x00};
 	struct asn1_item alg = {ASN1_SEQUENCE};
 	struct asn1_item sig = {ASN1_BITSTRING};
@@ -42,10 +34,11 @@ x509cert_sign(const struct asn1_item *data, const struct x509cert_skey *key, con
 		switch (hc->desc >> BR_HASHDESC_ID_OFF & BR_HASHDESC_ID_MASK) {
 		case br_sha256_ID: oid = oid_ecdsa_sha256; break;
 		}
+		params = NULL;
 		/* assume maximum length until we compute the signature */
 		switch (key->u.ec->curve) {
-		case BR_EC_secp256r1: params = oid_secp256r1, sigmax = 72; break;
-		case BR_EC_secp384r1: params = oid_secp384r1, sigmax = 104; break;
+		case BR_EC_secp256r1: sigmax = 72; break;
+		case BR_EC_secp384r1: sigmax = 104; break;
 		default: return 0;
 		}
 		break;
@@ -53,7 +46,9 @@ x509cert_sign(const struct asn1_item *data, const struct x509cert_skey *key, con
 		return 0;
 	}
 
-	alg.len = asn1_copy(oid, NULL) + asn1_copy(params, NULL);
+	alg.len = asn1_copy(oid, NULL);
+	if (params)
+		alg.len += asn1_copy(params, NULL);
 	sig.len = ++sigmax;
 	item.len = asn1_encode(data, NULL);
 	if (item.len == 0)
@@ -76,7 +71,8 @@ x509cert_sign(const struct asn1_item *data, const struct x509cert_skey *key, con
 
 	pos += asn1_encode(&alg, pos);
 	pos += asn1_copy(oid, pos);
-	pos += asn1_copy(params, pos);
+	if (params)
+		pos += asn1_copy(params, pos);
 
 	sigpos = pos;
 	pos += asn1_encode(&sig, pos);
