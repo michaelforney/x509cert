@@ -57,7 +57,7 @@ x509cert_sign(const struct asn1_item *data, const struct x509cert_skey *key, con
 	unsigned char *pos, *sigpos, *datapos, *newdatapos;
 	unsigned char hash[64];
 	int hashid;
-	size_t len, hashlen, sigmax;
+	size_t len, hashlen, sigmax = 0;
 	br_hash_compat_context ctx;
 	const br_ec_impl *ec;
 
@@ -67,6 +67,7 @@ x509cert_sign(const struct asn1_item *data, const struct x509cert_skey *key, con
 	case BR_KEYTYPE_RSA:
 		switch (hashid) {
 		case br_sha256_ID: oid = BR_HASH_OID_SHA256; break;
+		default: return 0;
 		}
 		sigmax = (key->u.rsa->n_bitlen + 7) / 8;
 		break;
@@ -75,12 +76,11 @@ x509cert_sign(const struct asn1_item *data, const struct x509cert_skey *key, con
 		switch (key->u.ec->curve) {
 		case BR_EC_secp256r1: sigmax = 72; break;
 		case BR_EC_secp384r1: sigmax = 104; break;
-		default: return 0;
 		}
 		break;
-	default:
-		return 0;
 	}
+	if (!sigmax)
+		return 0;
 
 	sig.len = ++sigmax;
 	item.len = asn1_encode(data, NULL);
