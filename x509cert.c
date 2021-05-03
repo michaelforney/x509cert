@@ -6,7 +6,7 @@
 
 static const char *argv0;
 static struct x509cert_dn subject = {.item.enc = x509cert_encode_dn};
-static struct x509cert_req req;
+static struct x509cert_req req = {.item.enc = x509cert_encode_req};
 static struct x509cert_skey skey;
 static struct asn1_item *alts;
 static size_t alts_len;
@@ -202,6 +202,7 @@ int
 main(int argc, char *argv[])
 {
 	int rflag = 0;
+	const struct asn1_item *item;
 	unsigned long duration = 32ul * 24 * 60 * 60;
 	unsigned char *out, *pem;
 	size_t outlen, pemlen;
@@ -249,18 +250,19 @@ main(int argc, char *argv[])
 		req.name = &subject.item;
 		req.alts = alts;
 		req.alts_len = alts_len;
-		outlen = x509cert_req(&req, &skey, &br_sha256_vtable, NULL);
-		if (!outlen) {
-			fputs("unsupported key\n", stderr);
-			return 1;
-		}
-		out = xmalloc(outlen);
-		outlen = x509cert_req(&req, &skey, &br_sha256_vtable, out);
+		item = &req.item;
 	} else {
 		banner = "CERTIFICATE";
 		fputs("generating certificate not yet supported\n", stderr);
 		return 1;
 	}
+	outlen = x509cert_sign(item, &skey, &br_sha256_vtable, NULL);
+	if (!outlen) {
+		fputs("unsupported key\n", stderr);
+		return 1;
+	}
+	out = xmalloc(outlen);
+	outlen = x509cert_sign(item, &skey, &br_sha256_vtable, out);
 	if (!outlen) {
 		fputs("signing failed\n", stderr);
 		return 1;

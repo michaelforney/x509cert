@@ -4,13 +4,14 @@
 #include "asn1.h"
 
 size_t
-x509cert_encode_req(const struct x509cert_req *req, unsigned char *buf)
+x509cert_encode_req(const struct asn1_item *item, unsigned char *buf)
 {
 	static const unsigned char ver[] = {0x02, 0x01, 0x00};
 	static const unsigned char oid_extensionRequest[] = {
 		/* OID 1.2.840.114549.1.9.14 */
 		0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x09, 0x0e,
 	};
+	const struct x509cert_req *req = (void *)item;
 	struct asn1_item attrs = {0xa0};
 	struct asn1_item cri = {ASN1_SEQUENCE};
 	struct asn1_item attr = {ASN1_SEQUENCE};
@@ -53,25 +54,4 @@ x509cert_encode_req(const struct x509cert_req *req, unsigned char *buf)
 
 	assert(pos - buf == len);
 	return len;
-}
-
-struct req_item {
-	struct asn1_item item;
-	const struct x509cert_req *req;
-};
-
-static size_t
-encode_cri(const struct asn1_item *item, unsigned char *buf)
-{
-	struct req_item *r = (void *)item;
-
-	return x509cert_encode_req(r->req, buf);
-}
-
-size_t
-x509cert_req(const struct x509cert_req *req, const struct x509cert_skey *key, const br_hash_class *hc, unsigned char *buf)
-{
-	struct req_item r = {.item.enc = encode_cri, .req = req};
-
-	return x509cert_sign(&r.item, key, hc, buf);
 }
