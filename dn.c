@@ -2,8 +2,8 @@
 #include "asn1.h"
 #include "x509cert.h"
 
-size_t
-x509cert_encode_rdn(const struct x509cert_rdn *rdn, unsigned char *buf)
+static size_t
+encode_rdn(const struct x509cert_rdn *rdn, unsigned char *buf)
 {
 	struct asn1_item item = {ASN1_SET};
 	struct asn1_item attr = {ASN1_SEQUENCE};
@@ -31,13 +31,13 @@ x509cert_encode_dn(const struct asn1_item *ptr, unsigned char *buf)
 	size_t len;
 
 	for (size_t i = 0; i < dn->rdn_len; ++i)
-		item.len += x509cert_encode_rdn(&dn->rdn[i], NULL);
+		item.len += encode_rdn(&dn->rdn[i], NULL);
 	len = asn1_encode(&item, NULL);
 	if (buf) {
 		unsigned char *pos = buf;
 		pos += asn1_encode(&item, buf);
 		for (size_t i = 0; i < dn->rdn_len; ++i)
-			pos += x509cert_encode_rdn(&dn->rdn[i], pos);
+			pos += encode_rdn(&dn->rdn[i], pos);
 		assert(pos - buf == len);
 	}
 	return len;

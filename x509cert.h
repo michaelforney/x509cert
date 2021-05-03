@@ -46,14 +46,6 @@ struct x509cert_cert {
 };
 
 /*
- * Encode a RelativeDistinguishedName into a buffer (if it is not
- * NULL).
- *
- * The encoded length of the RDN is returned.
- */
-size_t x509cert_encode_rdn(const struct x509cert_rdn *, unsigned char *);
-
-/*
  * Encode a DistinguishedName into a buffer (if it is not NULL).
  *
  * The item must point to the item member of a struct x509cert_dn.
