@@ -29,7 +29,10 @@ x509cert_encode_cert(const struct x509cert_cert *cert, unsigned char *buf)
 	if (cert->req->alts_len > 0)
 		item.len += sizeof(ver);
 	item.len += asn1_encode_uint(&cert->serial, NULL);
-	item.len += x509cert_encode_sign_alg(cert->alg.type, cert->alg.hash, NULL);
+	len = x509cert_encode_sign_alg(cert->alg.type, cert->alg.hash, NULL);
+	if (len == 0)
+		return 0;
+	item.len += len;
 	item.len += asn1_encode(cert->issuer, NULL);
 	validity.len = encode_tm(NULL, NULL) + encode_tm(NULL, NULL);
 	item.len += asn1_encode(&validity, NULL);
