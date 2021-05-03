@@ -203,8 +203,8 @@ main(int argc, char *argv[])
 {
 	int rflag = 0;
 	unsigned long duration = 32ul * 24 * 60 * 60;
-	unsigned char *buf, *out, *pem;
-	size_t buflen, outlen, pemlen;
+	unsigned char *out, *pem;
+	size_t outlen, pemlen;
 	const char *banner;
 	char *end;
 
@@ -237,9 +237,7 @@ main(int argc, char *argv[])
 	if (argc < 2 || argc > 3)
 		usage(NULL);
 
-	buflen = strlen(argv[0]);
-	buf = xmalloc(buflen);
-	if (x509cert_parse_dn_string(&subject, argv[0], buf, buflen) != 0) {
+	if (x509cert_parse_dn_string(&subject, argv[0], (unsigned char *)argv[0], strlen(argv[0])) != 0) {
 		fputs("invalid subject name\n", stderr);
 		return 1;
 	}
