@@ -22,7 +22,7 @@ x509cert_encode_req(const struct x509cert_req *req, unsigned char *buf)
 	cri.len = x509cert_encode_pkey(&req->pkey, NULL);
 	if (!cri.len)
 		return 0;
-	cri.len += sizeof(ver) + x509cert_encode_dn(&req->name, NULL);
+	cri.len += sizeof(ver) + asn1_encode(req->name, NULL);
 
 	if (req->alts_len > 0) {
 		exts.len = x509cert_encode_san(req->alts, req->alts_len, NULL);
@@ -40,7 +40,7 @@ x509cert_encode_req(const struct x509cert_req *req, unsigned char *buf)
 	pos = buf;
 	pos += asn1_encode(&cri, pos);
 	pos += asn1_copy(ver, pos);
-	pos += x509cert_encode_dn(&req->name, pos);
+	pos += asn1_encode(req->name, pos);
 	pos += x509cert_encode_pkey(&req->pkey, pos);
 	pos += asn1_encode(&attrs, pos);
 	if (req->alts_len > 0) {

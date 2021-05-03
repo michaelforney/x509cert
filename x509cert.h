@@ -21,13 +21,14 @@ struct x509cert_rdn {
 
 /* X.501 DistinguishedName */
 struct x509cert_dn {
+	struct asn1_item item;
 	struct x509cert_rdn *rdn;
 	size_t rdn_len;
 };
 
 /* PKCS#10 CertificateRequestInfo */
 struct x509cert_req {
-	struct x509cert_dn name;
+	const struct asn1_item *name;
 	const struct asn1_item *alts;
 	size_t alts_len;
 	br_x509_pkey pkey;
@@ -55,9 +56,11 @@ size_t x509cert_encode_rdn(const struct x509cert_rdn *, unsigned char *);
 /*
  * Encode a DistinguishedName into a buffer (if it is not NULL).
  *
+ * The item must point to the item member of a struct x509cert_dn.
+ *
  * The encoded length of the DN is returned.
  */
-size_t x509cert_encode_dn(const struct x509cert_dn *, unsigned char *);
+size_t x509cert_encode_dn(const struct asn1_item *, unsigned char *);
 
 /*
  * Parse an RFC 1779 string representation of a DistinguishedName.

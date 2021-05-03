@@ -5,6 +5,7 @@
 #include "arg.h"
 
 static const char *argv0;
+static struct x509cert_dn subject = {.item.enc = x509cert_encode_dn};
 static struct x509cert_req req;
 static struct x509cert_skey skey;
 static struct asn1_item *alts;
@@ -238,7 +239,7 @@ main(int argc, char *argv[])
 
 	buflen = strlen(argv[0]);
 	buf = xmalloc(buflen);
-	if (x509cert_parse_dn_string(&req.name, argv[0], buf, buflen) != 0) {
+	if (x509cert_parse_dn_string(&subject, argv[0], buf, buflen) != 0) {
 		fputs("invalid subject name\n", stderr);
 		return 1;
 	}
@@ -247,6 +248,7 @@ main(int argc, char *argv[])
 
 	if (rflag) {
 		banner = "CERTIFICATE REQUEST";
+		req.name = &subject.item;
 		req.alts = alts;
 		req.alts_len = alts_len;
 		outlen = x509cert_req(&req, &skey, &br_sha256_vtable, NULL);
