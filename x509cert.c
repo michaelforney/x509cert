@@ -1,12 +1,15 @@
+#define _DEFAULT_SOURCE
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include "x509cert.h"
 #include "arg.h"
 
 static const char *argv0;
 static struct x509cert_dn subject = {.item.enc = x509cert_encode_dn};
 static unsigned char issuerbuf[4096];
+static unsigned char serialbuf[16];
 static struct x509cert_req req = {
 	.item.enc = x509cert_encode_req,
 	.subject = &subject.item,
@@ -338,6 +341,43 @@ load_cert(const char *name)
 	return &item;
 }
 
+static int
+hex(int c)
+{
+	if ('0' <= c && c <= '9')
+		return c - '0';
+	switch (c) {
+	case 'a': case 'A': return 10;
+	case 'b': case 'B': return 11;
+	case 'c': case 'C': return 12;
+	case 'd': case 'D': return 13;
+	case 'e': case 'E': return 14;
+	case 'f': case 'F': return 15;
+	}
+	fprintf(stderr, "invalid hex character '%c'", c);
+	exit(1);
+}
+
+static void
+parse_serial(struct asn1_uint *uint, const char *s)
+{
+	static unsigned char buf[16];
+	unsigned char *dst;
+	const char *end = s + strlen(s);
+
+	if (end == s || (end - s) % 2 != 0) {
+		fprintf(stderr, "invalid serial\n");
+		exit(1);
+	}
+	if ((end - s) / 2 > sizeof(buf)) {
+		fprintf(stderr, "serial is too large\n");
+		exit(1);
+	}
+	for (dst = buf; *s; ++dst, s += 2)
+		*dst = hex(s[0]) << 4 | hex(s[1]);
+	asn1_uint(uint, buf, dst - buf);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -373,6 +413,7 @@ main(int argc, char *argv[])
 		rflag = 1;
 		break;
 	case 's':
+		parse_serial(&cert.serial, EARGF(usage()));
 		break;
 	default:
 		usage();
@@ -398,6 +439,13 @@ main(int argc, char *argv[])
 		item = &req.item;
 	} else {
 		banner = "CERTIFICATE";
+		if (!cert.serial.buf) {
+			if (getentropy(serialbuf, sizeof(serialbuf)) != 0) {
+				perror("getentropy");
+				return 1;
+			}
+			asn1_uint(&cert.serial, serialbuf, sizeof(serialbuf));
+		}
 		cert.notbefore = time(NULL);
 		cert.notafter = cert.notbefore + duration;
 		cert.alg.type = skey.type;
