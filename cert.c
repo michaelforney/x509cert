@@ -37,7 +37,7 @@ x509cert_encode_cert(const struct asn1_item *ptr, unsigned char *buf)
 	item.len += asn1_encode(cert->issuer, NULL);
 	validity.len = encode_tm(NULL, NULL) + encode_tm(NULL, NULL);
 	item.len += asn1_encode(&validity, NULL);
-	item.len += asn1_encode(cert->req->name, NULL);
+	item.len += asn1_encode(cert->req->subject, NULL);
 	item.len += x509cert_encode_pkey(&cert->req->pkey, NULL);
 	if (cert->req->alts_len > 0) {
 		exts.len = x509cert_encode_san(cert->req->alts, cert->req->alts_len, NULL);
@@ -63,7 +63,7 @@ x509cert_encode_cert(const struct asn1_item *ptr, unsigned char *buf)
 		if (!(tm = gmtime(&cert->notafter)))
 			return 0;
 		pos += encode_tm(tm, pos);
-		pos += asn1_encode(cert->req->name, pos);
+		pos += asn1_encode(cert->req->subject, pos);
 		pos += x509cert_encode_pkey(&cert->req->pkey, pos);
 		if (cert->req->alts_len > 0) {
 			pos += asn1_encode(&optexts, pos);

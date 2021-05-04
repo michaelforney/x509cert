@@ -29,7 +29,7 @@ struct x509cert_dn {
 /* PKCS#10 CertificateRequestInfo */
 struct x509cert_req {
 	struct asn1_item item;
-	const struct asn1_item *name;
+	const struct asn1_item *subject;
 	const struct asn1_item *alts;
 	size_t alts_len;
 	br_x509_pkey pkey;

@@ -9,7 +9,7 @@ static struct x509cert_dn subject = {.item.enc = x509cert_encode_dn};
 static unsigned char issuerbuf[4096];
 static struct x509cert_req req = {
 	.item.enc = x509cert_encode_req,
-	.name = &subject.item,
+	.subject = &subject.item,
 };
 static struct x509cert_cert cert = {
 	.item.enc = x509cert_encode_cert,
