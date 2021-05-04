@@ -27,7 +27,7 @@ isstringchar(int c)
 }
 
 int
-x509cert_parse_dn_string(struct x509cert_dn *dn, const char *str, unsigned char *buf, size_t len)
+x509cert_parse_dn_string(struct x509cert_dn *dn, const char *str, void *bufptr, size_t len)
 {
 	static const struct {
 		char key[7];
@@ -43,7 +43,7 @@ x509cert_parse_dn_string(struct x509cert_dn *dn, const char *str, unsigned char 
 	};
 	struct x509cert_rdn *rdn;
 	const char *s, *end;
-	unsigned char *bufend = buf + len;
+	unsigned char *buf = bufptr, *bufend = buf + len;
 	int quote = 0;
 
 	/* determine number of components */

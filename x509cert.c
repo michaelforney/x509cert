@@ -238,7 +238,7 @@ main(int argc, char *argv[])
 	if (argc < 2 || argc > 3)
 		usage();
 
-	if (x509cert_parse_dn_string(&subject, argv[0], (unsigned char *)argv[0], strlen(argv[0])) != 0) {
+	if (x509cert_parse_dn_string(&subject, argv[0], argv[0], strlen(argv[0])) != 0) {
 		fputs("invalid subject name\n", stderr);
 		return 1;
 	}

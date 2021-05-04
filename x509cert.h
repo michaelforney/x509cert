@@ -67,7 +67,7 @@ size_t x509cert_encode_dn(const struct asn1_item *, unsigned char *);
  * Returns 0 on success. Returns -1 if allocation fails or there
  * was a parse error.
  */
-int x509cert_parse_dn_string(struct x509cert_dn *, const char *, unsigned char *, size_t);
+int x509cert_parse_dn_string(struct x509cert_dn *, const char *, void *, size_t);
 
 /*
  * Encode a SubjectPublicKeyInfo into a buffer (if it is not NULL).
