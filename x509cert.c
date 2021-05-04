@@ -6,6 +6,7 @@
 
 static const char *argv0;
 static struct x509cert_dn subject = {.item.enc = x509cert_encode_dn};
+static unsigned char issuerbuf[4096];
 static struct x509cert_req req = {.item.enc = x509cert_encode_req};
 static struct x509cert_skey skey;
 static struct asn1_item *alts;
@@ -239,6 +240,95 @@ load_key(const char *name, br_x509_pkey *pkey, struct x509cert_skey *skey)
 		skey->type = tmpkey.type;
 	if (pkey)
 		compute_pkey(pkey, &tmpkey);
+}
+
+static void
+append_dn(void *ctx, const void *buf, size_t len)
+{
+	struct asn1_item *item = ctx;
+
+	if (sizeof(issuerbuf) - item->len < len) {
+		fprintf(stderr, "issuer DN is too long");
+		exit(1);
+	}
+	memcpy(issuerbuf + item->len, buf, len);
+	item->len += len;
+}
+
+static void
+append_x509(void *ctx, const void *buf, size_t len)
+{
+	br_x509_decoder_push(ctx, buf, len);
+}
+
+static size_t
+encode_raw(const struct asn1_item *item, unsigned char *buf)
+{
+	if (buf)
+		memcpy(buf, item->val, item->len);
+	return item->len;
+}
+
+static const struct asn1_item *
+load_cert(const char *name)
+{
+	static struct asn1_item item = {.enc = encode_raw, .val = issuerbuf};
+	FILE *f;
+	br_pem_decoder_context pemctx;
+	br_x509_decoder_context x509ctx;
+	const char *pemname = NULL;
+	unsigned char buf[8192], *pos;
+	size_t len = 0, n;
+	int err;
+
+	f = fopen(name, "r");
+	if (!f) {
+		fprintf(stderr, "open %s: %s\n", name, strerror(errno));
+		exit(1);
+	}
+
+	br_pem_decoder_init(&pemctx);
+	br_x509_decoder_init(&x509ctx, append_dn, &item);
+	for (;;) {
+		if (len == 0) {
+			if (feof(f))
+				break;
+			len = fread(buf, 1, sizeof(buf), f);
+			if (ferror(f)) {
+				fprintf(stderr, "read %s: %s\n", name, strerror(errno));
+				exit(1);
+			}
+			pos = buf;
+		}
+		n = br_pem_decoder_push(&pemctx, pos, len);
+		pos += n;
+		len -= n;
+		switch (br_pem_decoder_event(&pemctx)) {
+		case BR_PEM_BEGIN_OBJ:
+			pemname = br_pem_decoder_name(&pemctx);
+			if (strcmp(pemname, "CERTIFICATE") == 0)
+				br_pem_decoder_setdest(&pemctx, append_x509, &x509ctx);
+			else
+				pemname = NULL;
+			break;
+		case BR_PEM_END_OBJ:
+			if (!pemname)
+				break;
+			err = br_x509_decoder_last_error(&x509ctx);
+			if (err) {
+				fprintf(stderr, "parse %s: error %d\n", name, err);
+				exit(1);
+			}
+			break;
+		case 0:
+			break;
+		default:
+			fprintf(stderr, "parse %s: PEM decoding error\n", name);
+			exit(1);
+		}
+	}
+
+	return &item;
 }
 
 int
