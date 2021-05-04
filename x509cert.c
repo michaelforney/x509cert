@@ -290,7 +290,7 @@ load_cert(const char *name, struct asn1_item *item)
 	}
 
 	br_pem_decoder_init(&pemctx);
-	br_x509_decoder_init(&x509ctx, append_dn, &item);
+	br_x509_decoder_init(&x509ctx, append_dn, item);
 	for (;;) {
 		if (len == 0) {
 			if (feof(f))
