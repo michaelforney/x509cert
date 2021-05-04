@@ -21,7 +21,7 @@ struct x509cert_rdn {
 
 /* X.501 DistinguishedName */
 struct x509cert_dn {
-	const struct x509cert_rdn *rdn;
+	struct x509cert_rdn *rdn;
 	size_t rdn_len;
 };
 
@@ -66,18 +66,24 @@ extern const unsigned char x509cert_oid_STREET[];
 size_t x509cert_encode_dn(const struct x509cert_dn *, unsigned char *);
 
 /*
+ * Determine the number of RDN components in an RFC 1779 string
+ * representation of a DistinguishedName.
+ */
+size_t x509cert_dn_string_rdn_len(const char *);
+
+/*
  * Parse an RFC 1779 string representation of a DistinguishedName.
  *
  * The given buffer is used to store the RDN values. The number of
- * bytes used is at most the length of the string. It may point to
+ * bytes used is less than length of the string. It may point to
  * the same buffer as the string.
  *
- * The RDN array is allocated and placed in the DN.
+ * The RDN array is populated and must be large enough to accomodate
+ * all RDN components.
  *
- * Returns 0 on success. Returns -1 if allocation fails or there
- * was a parse error.
+ * Returns 1 on success, or 0 on parse error.
  */
-int x509cert_parse_dn_string(struct x509cert_dn *, const char *, void *, size_t);
+int x509cert_parse_dn_string(struct x509cert_rdn *, const char *, void *, size_t);
 
 /*
  * Encode a SubjectPublicKeyInfo into a buffer (if it is not NULL).

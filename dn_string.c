@@ -26,8 +26,34 @@ isstringchar(int c)
 	return !isspecial(c) && c != '\\' && c != '"';
 }
 
+size_t
+x509cert_dn_string_rdn_len(const char *s)
+{
+	size_t len;
+	int quote = 0;
+
+	len = 1;
+	for (; *s; ++s) {
+		switch (*s) {
+		case '"':
+			quote ^= 1;
+			break;
+		case '\\':
+			if (s[1])
+				++s;
+			break;
+		case ',':
+		case ';':
+			if (!quote)
+				++len;
+			break;
+		}
+	}
+	return len;
+}
+
 int
-x509cert_parse_dn_string(struct x509cert_dn *dn, const char *str, void *bufptr, size_t len)
+x509cert_parse_dn_string(struct x509cert_rdn *rdn, const char *str, void *bufptr, size_t len)
 {
 	static const struct {
 		char key[7];
@@ -41,35 +67,10 @@ x509cert_parse_dn_string(struct x509cert_dn *dn, const char *str, void *bufptr, 
 		{"C",      x509cert_oid_C},
 		{"STREET", x509cert_oid_STREET},
 	};
-	struct x509cert_rdn *rdn;
 	const char *s, *end;
-	unsigned char *buf = bufptr, *bufend = buf + len;
+	unsigned char *buf = bufptr;
+	unsigned char *bufend = buf + len;
 	int quote = 0;
-
-	/* determine number of components */
-	dn->rdn_len = 1;
-	for (s = str; *s; ++s) {
-		switch (*s) {
-		case '"':
-			quote ^= 1;
-			break;
-		case '\\':
-			if (s[1])
-				++s;
-			break;
-		case ',':
-		case ';':
-			if (!quote)
-				++dn->rdn_len;
-			break;
-		}
-	}
-
-	rdn = calloc(dn->rdn_len, sizeof(dn->rdn[0]));
-	if (!rdn)
-		return -1;
-
-	dn->rdn = rdn;
 
 	s = str;
 	do {
@@ -88,15 +89,15 @@ x509cert_parse_dn_string(struct x509cert_dn *dn, const char *str, void *bufptr, 
 			}
 		}
 		if (!rdn->oid)
-			return -1;
+			return 0;
 		space(&s);
 		if (*s != '=')
-			return -1;
+			return 0;
 		++s;
 		space(&s);
 		rdn->val.val = buf;
 		if (*s == '#') {
-			return -1;
+			return 0;
 		} else {
 			if (*s == '"') {
 				++s;
@@ -106,12 +107,12 @@ x509cert_parse_dn_string(struct x509cert_dn *dn, const char *str, void *bufptr, 
 				if (*s == '\\')
 					++s;
 				if (buf == bufend)
-					return -1;
+					return 0;
 				*buf++ = *s++;
 			}
 			if (quote) {
 				if (*s != '"')
-					return -1;
+					return 0;
 				++s;
 			}
 		}
@@ -126,6 +127,6 @@ x509cert_parse_dn_string(struct x509cert_dn *dn, const char *str, void *bufptr, 
 		++rdn;
 	} while (*s);
 	if (*s)
-		return -1;
-	return 0;
+		return 0;
+	return 1;
 }

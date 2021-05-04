@@ -414,7 +414,9 @@ main(int argc, char *argv[])
 	if (argc < 2 || argc > 3 || (rflag && certfile) || !certfile != !keyfile)
 		usage();
 
-	if (x509cert_parse_dn_string(&subject, argv[0], argv[0], strlen(argv[0])) != 0) {
+	subject.rdn_len = x509cert_dn_string_rdn_len(argv[0]);
+	subject.rdn = xmallocarray(subject.rdn_len, sizeof(subject.rdn[0]));
+	if (!x509cert_parse_dn_string(subject.rdn, argv[0], argv[0], strlen(argv[0]))) {
 		fputs("invalid subject name\n", stderr);
 		return 1;
 	}
