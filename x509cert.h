@@ -36,6 +36,7 @@ struct x509cert_req {
 };
 
 struct x509cert_cert {
+	struct asn1_item item;
 	const struct x509cert_req *req;
 	struct asn1_uint serial;
 	struct {
@@ -109,7 +110,7 @@ size_t x509cert_encode_req(const struct asn1_item *, unsigned char *);
  *
  * The encoded length of the TBSCertificate is returned.
  */
-size_t x509cert_encode_cert(const struct x509cert_cert *, unsigned char *);
+size_t x509cert_encode_cert(const struct asn1_item *, unsigned char *);
 
 /*
  * Sign an ASN.1 item, and encode the item and its signature as an

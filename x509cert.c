@@ -11,6 +11,11 @@ static struct x509cert_req req = {
 	.item.enc = x509cert_encode_req,
 	.name = &subject.item,
 };
+static struct x509cert_cert cert = {
+	.item.enc = x509cert_encode_cert,
+	.req = &req,
+	.issuer = &subject.item,
+};
 static struct x509cert_skey skey;
 static struct asn1_item *alts;
 
@@ -341,7 +346,7 @@ main(int argc, char *argv[])
 	unsigned long duration = 32ul * 24 * 60 * 60;
 	unsigned char *out, *pem;
 	size_t outlen, pemlen;
-	const char *banner;
+	const char *banner, *certfile = NULL, *keyfile = NULL;
 	char *end;
 
 	/* at most one subjectAltName per argument */
@@ -354,6 +359,7 @@ main(int argc, char *argv[])
 		add_alt(EARGF(usage()));
 		break;
 	case 'c':
+		certfile = EARGF(usage());
 		break;
 	case 'd':
 		duration = strtoul(EARGF(usage()), &end, 0);
@@ -361,6 +367,7 @@ main(int argc, char *argv[])
 			usage();
 		break;
 	case 'k':
+		keyfile = EARGF(usage());
 		break;
 	case 'r':
 		rflag = 1;
@@ -370,7 +377,7 @@ main(int argc, char *argv[])
 	default:
 		usage();
 	} ARGEND
-	if (argc < 2 || argc > 3)
+	if (argc < 2 || argc > 3 || (rflag && certfile) || !certfile != !keyfile)
 		usage();
 
 	if (x509cert_parse_dn_string(&subject, argv[0], argv[0], strlen(argv[0])) != 0) {
@@ -378,15 +385,24 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
-	load_key(argv[1], &req.pkey, &skey);
+	if (keyfile) {
+		load_key(argv[1], &req.pkey, NULL);
+		load_key(keyfile, NULL, &skey);
+		cert.issuer = load_cert(certfile);
+	} else {
+		load_key(argv[1], &req.pkey, &skey);
+	}
 
 	if (rflag) {
 		banner = "CERTIFICATE REQUEST";
 		item = &req.item;
 	} else {
 		banner = "CERTIFICATE";
-		fputs("generating certificate not yet supported\n", stderr);
-		return 1;
+		cert.notbefore = time(NULL);
+		cert.notafter = cert.notbefore + duration;
+		cert.alg.type = skey.type;
+		cert.alg.hash = br_sha256_ID;
+		item = &cert.item;
 	}
 	outlen = x509cert_sign(item, &skey, &br_sha256_vtable, NULL);
 	if (!outlen) {

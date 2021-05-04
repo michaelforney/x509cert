@@ -17,9 +17,10 @@ encode_tm(const struct tm *tm, unsigned char *buf)
 }
 
 size_t
-x509cert_encode_cert(const struct x509cert_cert *cert, unsigned char *buf)
+x509cert_encode_cert(const struct asn1_item *ptr, unsigned char *buf)
 {
 	static const unsigned char ver[] = {0xa0, 0x03, 0x02, 0x01, 0x02};
+	const struct x509cert_cert *cert = (void *)ptr;
 	struct asn1_item item = {ASN1_SEQUENCE};
 	struct asn1_item validity = {ASN1_SEQUENCE};
 	struct asn1_item optexts = {0xa3};
