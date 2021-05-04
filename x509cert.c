@@ -12,10 +12,8 @@ static struct asn1_item *alts;
 static size_t alts_len;
 
 static void
-usage(const char *msg)
+usage(void)
 {
-	if (msg)
-		fprintf(stderr, "%s: %s\n", argv0, msg);
 	fprintf(stderr, "usage: %s [-r] [-a altname]... [-c issuercert] [-k issuerkey] [-d duration] [-s serial] subject key\n", argv0);
 	exit(1);
 }
@@ -218,14 +216,14 @@ main(int argc, char *argv[])
 	argv0 = argc ? argv[0] : "x509cert";
 	ARGBEGIN {
 	case 'a':
-		add_alt(EARGF(usage(NULL)));
+		add_alt(EARGF(usage()));
 		break;
 	case 'c':
 		break;
 	case 'd':
-		duration = strtoul(EARGF(usage(NULL)), &end, 0);
+		duration = strtoul(EARGF(usage()), &end, 0);
 		if (*end)
-			usage("invalid duration");
+			usage();
 		break;
 	case 'k':
 		break;
@@ -235,10 +233,10 @@ main(int argc, char *argv[])
 	case 's':
 		break;
 	default:
-		usage(NULL);
+		usage();
 	} ARGEND
 	if (argc < 2 || argc > 3)
-		usage(NULL);
+		usage();
 
 	if (x509cert_parse_dn_string(&subject, argv[0], (unsigned char *)argv[0], strlen(argv[0])) != 0) {
 		fputs("invalid subject name\n", stderr);
