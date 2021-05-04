@@ -21,31 +21,32 @@ struct x509cert_rdn {
 
 /* X.501 DistinguishedName */
 struct x509cert_dn {
-	struct asn1_item item;
-	struct x509cert_rdn *rdn;
+	const struct x509cert_rdn *rdn;
 	size_t rdn_len;
 };
 
 /* PKCS#10 CertificateRequestInfo */
 struct x509cert_req {
-	struct asn1_item item;
-	const struct asn1_item *subject;
+	struct asn1_item subject;
 	const struct asn1_item *alts;
 	size_t alts_len;
 	br_x509_pkey pkey;
 };
 
 struct x509cert_cert {
-	struct asn1_item item;
 	const struct x509cert_req *req;
 	struct asn1_uint serial;
 	struct {
 		int type;
 		int hash;
 	} alg;
-	const struct asn1_item *issuer;
+	struct asn1_item issuer;
 	time_t notbefore, notafter;
 };
+
+extern asn1_encoder x509cert_dn_encoder;
+extern asn1_encoder x509cert_req_encoder;
+extern asn1_encoder x509cert_cert_encoder;
 
 extern const unsigned char x509cert_oid_CN[];
 extern const unsigned char x509cert_oid_L[];
@@ -62,7 +63,7 @@ extern const unsigned char x509cert_oid_STREET[];
  *
  * The encoded length of the DN is returned.
  */
-size_t x509cert_encode_dn(const struct asn1_item *, unsigned char *);
+size_t x509cert_encode_dn(const struct x509cert_dn *, unsigned char *);
 
 /*
  * Parse an RFC 1779 string representation of a DistinguishedName.
@@ -109,7 +110,7 @@ size_t x509cert_encode_san(const struct asn1_item *, size_t, unsigned char *);
  *
  * The encoded length of the CertificateRequestInfo is returned.
  */
-size_t x509cert_encode_req(const struct asn1_item *, unsigned char *);
+size_t x509cert_encode_req(const struct x509cert_req *, unsigned char *);
 
 /*
  * Encode an X.509 TBSCertificate into a buffer (if it is not NULL).
@@ -118,7 +119,7 @@ size_t x509cert_encode_req(const struct asn1_item *, unsigned char *);
  *
  * The encoded length of the TBSCertificate is returned.
  */
-size_t x509cert_encode_cert(const struct asn1_item *, unsigned char *);
+size_t x509cert_encode_cert(const struct x509cert_cert *, unsigned char *);
 
 /*
  * Sign an ASN.1 item, and encode the item and its signature as an

@@ -7,18 +7,11 @@
 #include "arg.h"
 
 static const char *argv0;
-static struct x509cert_dn subject = {.item.enc = x509cert_encode_dn};
 static unsigned char issuerbuf[4096];
 static unsigned char serialbuf[16];
-static struct x509cert_req req = {
-	.item.enc = x509cert_encode_req,
-	.subject = &subject.item,
-};
-static struct x509cert_cert cert = {
-	.item.enc = x509cert_encode_cert,
-	.req = &req,
-	.issuer = &subject.item,
-};
+static struct x509cert_dn subject;
+static struct x509cert_req req = {.subject = {.enc = x509cert_dn_encoder, .val = &subject}};
+static struct x509cert_cert cert = {.req = &req};
 static struct x509cert_skey skey;
 static struct asn1_item *alts;
 
@@ -279,10 +272,9 @@ encode_raw(const struct asn1_item *item, unsigned char *buf)
 	return item->len;
 }
 
-static const struct asn1_item *
-load_cert(const char *name)
+static void
+load_cert(const char *name, struct asn1_item *item)
 {
-	static struct asn1_item item = {.enc = encode_raw, .val = issuerbuf};
 	FILE *f;
 	br_pem_decoder_context pemctx;
 	br_x509_decoder_context x509ctx;
@@ -338,7 +330,8 @@ load_cert(const char *name)
 		}
 	}
 
-	return &item;
+	item->enc = encode_raw;
+	item->val = issuerbuf;
 }
 
 static int
@@ -382,7 +375,7 @@ int
 main(int argc, char *argv[])
 {
 	int rflag = 0;
-	const struct asn1_item *item;
+	struct asn1_item item;
 	unsigned long duration = 32ul * 24 * 60 * 60;
 	unsigned char *out, *pem;
 	size_t outlen, pemlen;
@@ -429,14 +422,16 @@ main(int argc, char *argv[])
 	if (keyfile) {
 		load_key(argv[1], &req.pkey, NULL);
 		load_key(keyfile, NULL, &skey);
-		cert.issuer = load_cert(certfile);
+		load_cert(certfile, &cert.issuer);
 	} else {
 		load_key(argv[1], &req.pkey, &skey);
+		cert.issuer = req.subject;
 	}
 
 	if (rflag) {
 		banner = "CERTIFICATE REQUEST";
-		item = &req.item;
+		item.enc = x509cert_req_encoder;
+		item.val = &req;
 	} else {
 		banner = "CERTIFICATE";
 		if (!cert.serial.buf) {
@@ -450,15 +445,16 @@ main(int argc, char *argv[])
 		cert.notafter = cert.notbefore + duration;
 		cert.alg.type = skey.type;
 		cert.alg.hash = br_sha256_ID;
-		item = &cert.item;
+		item.enc = x509cert_cert_encoder;
+		item.val = &cert;
 	}
-	outlen = x509cert_sign(item, &skey, &br_sha256_vtable, NULL);
+	outlen = x509cert_sign(&item, &skey, &br_sha256_vtable, NULL);
 	if (!outlen) {
 		fputs("unsupported key\n", stderr);
 		return 1;
 	}
 	out = xmalloc(outlen);
-	outlen = x509cert_sign(item, &skey, &br_sha256_vtable, out);
+	outlen = x509cert_sign(&item, &skey, &br_sha256_vtable, out);
 	if (!outlen) {
 		fputs("signing failed\n", stderr);
 		return 1;

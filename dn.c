@@ -24,9 +24,8 @@ encode_rdn(const struct x509cert_rdn *rdn, unsigned char *buf)
 }
 
 size_t
-x509cert_encode_dn(const struct asn1_item *ptr, unsigned char *buf)
+x509cert_encode_dn(const struct x509cert_dn *dn, unsigned char *buf)
 {
-	const struct x509cert_dn *dn = (void *)ptr;
 	struct asn1_item item = {ASN1_SEQUENCE};
 	size_t len;
 
@@ -41,4 +40,10 @@ x509cert_encode_dn(const struct asn1_item *ptr, unsigned char *buf)
 		assert(pos - buf == len);
 	}
 	return len;
+}
+
+size_t
+x509cert_dn_encoder(const struct asn1_item *item, unsigned char *buf)
+{
+	return x509cert_encode_dn(item->val, buf);
 }

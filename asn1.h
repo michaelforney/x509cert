@@ -16,11 +16,15 @@ enum {
 	ASN1_SET 	     = 0x31,
 };
 
+struct asn1_item;
+
+typedef size_t asn1_encoder(const struct asn1_item *, unsigned char *);
+
 struct asn1_item {
 	int tag;
 	size_t len;
 	const void *val;
-	size_t (*enc)(const struct asn1_item *, unsigned char *);
+	asn1_encoder *enc;
 };
 
 struct asn1_uint {

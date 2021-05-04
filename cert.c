@@ -17,10 +17,9 @@ encode_tm(const struct tm *tm, unsigned char *buf)
 }
 
 size_t
-x509cert_encode_cert(const struct asn1_item *ptr, unsigned char *buf)
+x509cert_encode_cert(const struct x509cert_cert *cert, unsigned char *buf)
 {
 	static const unsigned char ver[] = {0xa0, 0x03, 0x02, 0x01, 0x02};
-	const struct x509cert_cert *cert = (void *)ptr;
 	struct asn1_item item = {ASN1_SEQUENCE};
 	struct asn1_item validity = {ASN1_SEQUENCE};
 	struct asn1_item optexts = {0xa3};
@@ -34,10 +33,10 @@ x509cert_encode_cert(const struct asn1_item *ptr, unsigned char *buf)
 	if (len == 0)
 		return 0;
 	item.len += len;
-	item.len += asn1_encode(cert->issuer, NULL);
+	item.len += asn1_encode(&cert->issuer, NULL);
 	validity.len = encode_tm(NULL, NULL) + encode_tm(NULL, NULL);
 	item.len += asn1_encode(&validity, NULL);
-	item.len += asn1_encode(cert->req->subject, NULL);
+	item.len += asn1_encode(&cert->req->subject, NULL);
 	item.len += x509cert_encode_pkey(&cert->req->pkey, NULL);
 	if (cert->req->alts_len > 0) {
 		exts.len = x509cert_encode_san(cert->req->alts, cert->req->alts_len, NULL);
@@ -55,7 +54,7 @@ x509cert_encode_cert(const struct asn1_item *ptr, unsigned char *buf)
 			pos += asn1_copy(ver, pos);
 		pos += asn1_encode_uint(&cert->serial, pos);
 		pos += x509cert_encode_sign_alg(cert->alg.type, cert->alg.hash, pos);
-		pos += asn1_encode(cert->issuer, pos);
+		pos += asn1_encode(&cert->issuer, pos);
 		pos += asn1_encode(&validity, pos);
 		if (!(tm = gmtime(&cert->notbefore)))
 			return 0;
@@ -63,7 +62,7 @@ x509cert_encode_cert(const struct asn1_item *ptr, unsigned char *buf)
 		if (!(tm = gmtime(&cert->notafter)))
 			return 0;
 		pos += encode_tm(tm, pos);
-		pos += asn1_encode(cert->req->subject, pos);
+		pos += asn1_encode(&cert->req->subject, pos);
 		pos += x509cert_encode_pkey(&cert->req->pkey, pos);
 		if (cert->req->alts_len > 0) {
 			pos += asn1_encode(&optexts, pos);
@@ -74,4 +73,10 @@ x509cert_encode_cert(const struct asn1_item *ptr, unsigned char *buf)
 	}
 
 	return len;
+}
+
+size_t
+x509cert_cert_encoder(const struct asn1_item *item, unsigned char *buf)
+{
+	return x509cert_encode_cert(item->val, buf);
 }
