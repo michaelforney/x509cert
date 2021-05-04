@@ -321,6 +321,10 @@ load_cert(const char *name, struct asn1_item *item)
 				fprintf(stderr, "parse %s: error %d\n", name, err);
 				exit(1);
 			}
+			if (!br_x509_decoder_isCA(&x509ctx)) {
+				fprintf(stderr, "issuer certificate is not a CA\n");
+				exit(1);
+			}
 			break;
 		case 0:
 			break;
