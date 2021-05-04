@@ -123,7 +123,7 @@ load_key(const char *name, br_x509_pkey *pkey, struct x509cert_skey *skey)
 	static br_skey_decoder_context keyctx;
 	FILE *f;
 	br_pem_decoder_context pemctx;
-	const char *pemname;
+	const char *pemname = NULL;
 	unsigned char buf[8192], *pos;
 	size_t len = 0, n;
 	int type = 0, err;
@@ -136,7 +136,7 @@ load_key(const char *name, br_x509_pkey *pkey, struct x509cert_skey *skey)
 
 	br_pem_decoder_init(&pemctx);
 	br_skey_decoder_init(&keyctx);
-	for (;;) {
+	while (!type) {
 		if (len == 0) {
 			if (feof(f))
 				break;
@@ -152,21 +152,19 @@ load_key(const char *name, br_x509_pkey *pkey, struct x509cert_skey *skey)
 		len -= n;
 		switch (br_pem_decoder_event(&pemctx)) {
 		case BR_PEM_BEGIN_OBJ:
-			if (type != 0) {
-				fprintf(stderr, "parse %s: multiple PEM objects\n", name);
-				exit(1);
-			}
 			pemname = br_pem_decoder_name(&pemctx);
 			if (strcmp(pemname, BR_ENCODE_PEM_PKCS8) != 0 &&
 			    strcmp(pemname, BR_ENCODE_PEM_RSA_RAW) != 0 &&
 			    strcmp(pemname, BR_ENCODE_PEM_EC_RAW) != 0)
 			{
-				fprintf(stderr, "parse %s: unsupported key type\n", name);
-				exit(1);
+				pemname = NULL;
+				break;
 			}
 			br_pem_decoder_setdest(&pemctx, append_skey, &keyctx);
 			break;
 		case BR_PEM_END_OBJ:
+			if (!pemname)
+				break;
 			err = br_skey_decoder_last_error(&keyctx);
 			if (err) {
 				fprintf(stderr, "parse %s: error %d\n", name, err);
