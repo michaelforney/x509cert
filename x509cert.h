@@ -33,6 +33,7 @@ struct x509cert_req {
 	br_x509_pkey pkey;
 };
 
+/* X.509 TBSCertificate */
 struct x509cert_cert {
 	const struct x509cert_req *req;
 	struct asn1_uint serial;
