@@ -7,10 +7,12 @@
 static const char *argv0;
 static struct x509cert_dn subject = {.item.enc = x509cert_encode_dn};
 static unsigned char issuerbuf[4096];
-static struct x509cert_req req = {.item.enc = x509cert_encode_req};
+static struct x509cert_req req = {
+	.item.enc = x509cert_encode_req,
+	.name = &subject.item,
+};
 static struct x509cert_skey skey;
 static struct asn1_item *alts;
-static size_t alts_len;
 
 static void
 usage(void)
@@ -53,7 +55,7 @@ xmallocarray(size_t n, size_t m)
 static void
 add_alt(const char *name)
 {
-	struct asn1_item *alt = &alts[alts_len++];
+	struct asn1_item *alt = &alts[req.alts_len++];
 
 	alt->tag = 0x82;
 	alt->len = strlen(name);
@@ -344,7 +346,7 @@ main(int argc, char *argv[])
 
 	/* at most one subjectAltName per argument */
 	if (argc > 3)
-		alts = xmallocarray(argc - 3, sizeof(alts[0]));
+		req.alts = alts = xmallocarray(argc - 3, sizeof(alts[0]));
 
 	argv0 = argc ? argv[0] : "x509cert";
 	ARGBEGIN {
@@ -380,9 +382,6 @@ main(int argc, char *argv[])
 
 	if (rflag) {
 		banner = "CERTIFICATE REQUEST";
-		req.name = &subject.item;
-		req.alts = alts;
-		req.alts_len = alts_len;
 		item = &req.item;
 	} else {
 		banner = "CERTIFICATE";
