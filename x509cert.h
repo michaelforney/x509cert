@@ -43,6 +43,7 @@ struct x509cert_cert {
 	} alg;
 	struct asn1_item issuer;
 	time_t notbefore, notafter;
+	int ca;
 };
 
 extern asn1_encoder x509cert_dn_encoder;

@@ -391,6 +391,9 @@ main(int argc, char *argv[])
 	case 'a':
 		add_alt(EARGF(usage()));
 		break;
+	case 'C':
+		cert.ca = 1;
+		break;
 	case 'c':
 		certfile = EARGF(usage());
 		break;

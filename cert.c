@@ -16,6 +16,23 @@ encode_tm(const struct tm *tm, unsigned char *buf)
 	return asn1_encode(&item, buf);
 }
 
+/* basicConstraints extension */
+static size_t
+encode_bc(int ca, unsigned char *buf)
+{
+	static const unsigned char der[] = {
+		0x30, 0x0c,
+		0x06, 0x03, 0x55, 0x1d, 0x13,
+		0x04, 0x05, 0x30, 0x03, 0x01, 0x01,
+	};
+
+	if (buf) {
+		memcpy(buf, der, sizeof(der));
+		buf[sizeof(der)] = ca ? 0xff : 0;
+	}
+	return sizeof(der) + 1;
+}
+
 size_t
 x509cert_encode_cert(const struct x509cert_cert *cert, unsigned char *buf)
 {
@@ -26,8 +43,6 @@ x509cert_encode_cert(const struct x509cert_cert *cert, unsigned char *buf)
 	struct asn1_item exts = {ASN1_SEQUENCE};
 	size_t len;
 
-	if (cert->req->alts_len > 0)
-		item.len += sizeof(ver);
 	item.len += asn1_encode_uint(&cert->serial, NULL);
 	len = x509cert_encode_sign_alg(cert->alg.type, cert->alg.hash, NULL);
 	if (len == 0)
@@ -38,8 +53,12 @@ x509cert_encode_cert(const struct x509cert_cert *cert, unsigned char *buf)
 	item.len += asn1_encode(&validity, NULL);
 	item.len += asn1_encode(&cert->req->subject, NULL);
 	item.len += x509cert_encode_pkey(&cert->req->pkey, NULL);
-	if (cert->req->alts_len > 0) {
-		exts.len = x509cert_encode_san(cert->req->alts, cert->req->alts_len, NULL);
+	if (cert->req->alts_len > 0)
+		exts.len += x509cert_encode_san(cert->req->alts, cert->req->alts_len, NULL);
+	if (cert->ca)
+		exts.len += encode_bc(cert->ca, NULL);
+	if (exts.len > 0) {
+		item.len += sizeof(ver);
 		optexts.len = asn1_encode(&exts, NULL);
 		item.len += asn1_encode(&optexts, NULL);
 	}
@@ -50,7 +69,7 @@ x509cert_encode_cert(const struct x509cert_cert *cert, unsigned char *buf)
 		unsigned char *pos = buf;
 
 		pos += asn1_encode(&item, pos);
-		if (cert->req->alts_len > 0)
+		if (exts.len > 0)
 			pos += asn1_copy(ver, pos);
 		pos += asn1_encode_uint(&cert->serial, pos);
 		pos += x509cert_encode_sign_alg(cert->alg.type, cert->alg.hash, pos);
@@ -64,10 +83,13 @@ x509cert_encode_cert(const struct x509cert_cert *cert, unsigned char *buf)
 		pos += encode_tm(tm, pos);
 		pos += asn1_encode(&cert->req->subject, pos);
 		pos += x509cert_encode_pkey(&cert->req->pkey, pos);
-		if (cert->req->alts_len > 0) {
+		if (exts.len > 0) {
 			pos += asn1_encode(&optexts, pos);
 			pos += asn1_encode(&exts, pos);
-			pos += x509cert_encode_san(cert->req->alts, cert->req->alts_len, pos);
+			if (cert->req->alts_len > 0)
+				pos += x509cert_encode_san(cert->req->alts, cert->req->alts_len, pos);
+			if (cert->ca)
+				pos += encode_bc(cert->ca, pos);
 		}
 		assert(pos - buf == len);
 	}
