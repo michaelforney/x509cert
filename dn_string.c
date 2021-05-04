@@ -116,7 +116,7 @@ x509cert_parse_dn_string(struct x509cert_dn *dn, const char *str, void *bufptr, 
 			}
 		}
 		rdn->val.tag = ASN1_UTF8STRING;
-		rdn->val.len = buf - rdn->val.val;
+		rdn->val.len = buf - (unsigned char *)rdn->val.val;
 		space(&s);
 		/* multi-valued RDNs are not supported; assume no '+' */
 		if (*s != ',' && *s != ';')

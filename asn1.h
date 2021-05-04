@@ -19,7 +19,7 @@ enum {
 struct asn1_item {
 	int tag;
 	size_t len;
-	const unsigned char *val;
+	const void *val;
 	size_t (*enc)(const struct asn1_item *, unsigned char *);
 };
 

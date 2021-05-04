@@ -6,7 +6,7 @@ static size_t
 encode_tm(const struct tm *tm, unsigned char *buf)
 {
 	char str[16];
-	struct asn1_item item = {ASN1_GENERALIZEDTIME, 15, (unsigned char *)str};
+	struct asn1_item item = {ASN1_GENERALIZEDTIME, 15, str};
 
 	if (buf) {
 		snprintf(str, sizeof(str), "%04d%02d%02d%02d%02d%02dZ",
