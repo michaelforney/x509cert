@@ -111,6 +111,44 @@ compute_pkey(br_x509_pkey *pkey, const struct x509cert_skey *skey)
 	pkey->key_type = skey->type;
 }
 
+static br_rsa_private_key *
+clone_rsa_skey(const br_rsa_private_key *s)
+{
+	struct {
+		br_rsa_private_key key;
+		unsigned char buf[];
+	} *d;
+
+	d = xmalloc(sizeof(*d) + s->plen + s->qlen + s->dplen + s->dqlen + s->iqlen);
+	d->key = *s;
+	d->key.p = d->buf;
+	memcpy(d->key.p, s->p, s->plen);
+	d->key.q = d->key.p + d->key.plen;
+	memcpy(d->key.q, s->q, s->qlen);
+	d->key.dp = d->key.q + d->key.qlen;
+	memcpy(d->key.dp, s->dp, s->dplen);
+	d->key.dq = d->key.dp + d->key.dplen;
+	memcpy(d->key.dq, s->dq, s->dqlen);
+	d->key.iq = d->key.dq + d->key.dqlen;
+	memcpy(d->key.iq, s->iq, s->iqlen);
+	return &d->key;
+}
+
+static br_ec_private_key *
+clone_ec_skey(const br_ec_private_key *s)
+{
+	struct {
+		br_ec_private_key key;
+		unsigned char buf[];
+	} *d;
+
+	d = xmalloc(sizeof(*d) + s->xlen);
+	d->key = *s;
+	d->key.x = d->buf;
+	memcpy(d->key.x, s->x, s->xlen);
+	return &d->key;
+}
+
 static void
 append_skey(void *ctx, const void *src, size_t len)
 {
@@ -120,13 +158,14 @@ append_skey(void *ctx, const void *src, size_t len)
 static void
 load_key(const char *name, br_x509_pkey *pkey, struct x509cert_skey *skey)
 {
-	static br_skey_decoder_context keyctx;
 	FILE *f;
 	br_pem_decoder_context pemctx;
+	br_skey_decoder_context keyctx;
 	const char *pemname = NULL;
+	struct x509cert_skey tmpkey;
 	unsigned char buf[8192], *pos;
 	size_t len = 0, n;
-	int type = 0, err;
+	int err;
 
 	f = fopen(name, "r");
 	if (!f) {
@@ -136,7 +175,8 @@ load_key(const char *name, br_x509_pkey *pkey, struct x509cert_skey *skey)
 
 	br_pem_decoder_init(&pemctx);
 	br_skey_decoder_init(&keyctx);
-	while (!type) {
+	tmpkey.type = 0;
+	while (!tmpkey.type) {
 		if (len == 0) {
 			if (feof(f))
 				break;
@@ -170,7 +210,7 @@ load_key(const char *name, br_x509_pkey *pkey, struct x509cert_skey *skey)
 				fprintf(stderr, "parse %s: error %d\n", name, err);
 				exit(1);
 			}
-			type = br_skey_decoder_key_type(&keyctx);
+			tmpkey.type = br_skey_decoder_key_type(&keyctx);
 			break;
 		case 0:
 			break;
@@ -180,20 +220,25 @@ load_key(const char *name, br_x509_pkey *pkey, struct x509cert_skey *skey)
 		}
 	}
 
-	switch (type) {
+	switch (tmpkey.type) {
 	case BR_KEYTYPE_RSA:
-		skey->u.rsa = br_skey_decoder_get_rsa(&keyctx);
+		tmpkey.u.rsa = br_skey_decoder_get_rsa(&keyctx);
+		if (skey)
+			skey->u.rsa = clone_rsa_skey(tmpkey.u.rsa);
 		break;
 	case BR_KEYTYPE_EC:
-		skey->u.ec = br_skey_decoder_get_ec(&keyctx);
+		tmpkey.u.ec = br_skey_decoder_get_ec(&keyctx);
+		if (skey)
+			skey->u.ec = clone_ec_skey(tmpkey.u.ec);
 		break;
 	default:
 		fprintf(stderr, "parse %s: unsupported key type\n", name);
 		exit(1);
 	}
-	skey->type = type;
+	if (skey)
+		skey->type = tmpkey.type;
 	if (pkey)
-		compute_pkey(pkey, skey);
+		compute_pkey(pkey, &tmpkey);
 }
 
 int
