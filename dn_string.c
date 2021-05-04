@@ -31,15 +31,15 @@ x509cert_parse_dn_string(struct x509cert_dn *dn, const char *str, void *bufptr, 
 {
 	static const struct {
 		char key[7];
-		unsigned char oid[5];
+		const unsigned char *oid;
 	} keywords[] = {
-		{"CN",     {0x06, 0x03, 0x55, 0x04, 0x03}}, /* 2.5.4.3 */
-		{"L",      {0x06, 0x03, 0x55, 0x04, 0x07}}, /* 2.5.4.7 */
-		{"ST",     {0x06, 0x03, 0x55, 0x04, 0x08}}, /* 2.5.4.8 */
-		{"O",      {0x06, 0x03, 0x55, 0x04, 0x0a}}, /* 2.5.4.10 */
-		{"OU",     {0x06, 0x03, 0x55, 0x04, 0x0b}}, /* 2.5.4.11 */
-		{"C",      {0x06, 0x03, 0x55, 0x04, 0x06}}, /* 2.5.4.6 */
-		{"STREET", {0x06, 0x03, 0x55, 0x04, 0x09}}, /* 2.5.4.9 */
+		{"CN",     x509cert_oid_CN},
+		{"L",      x509cert_oid_L},
+		{"ST",     x509cert_oid_ST},
+		{"O",      x509cert_oid_O},
+		{"OU",     x509cert_oid_OU},
+		{"C",      x509cert_oid_C},
+		{"STREET", x509cert_oid_STREET},
 	};
 	struct x509cert_rdn *rdn;
 	const char *s, *end;

@@ -11,6 +11,7 @@ OBJ=\
 	cert.o\
 	dn.o\
 	dn_string.o\
+	oid.o\
 	pkey.o\
 	req.o\
 	san.o\

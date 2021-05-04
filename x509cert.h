@@ -47,6 +47,14 @@ struct x509cert_cert {
 	time_t notbefore, notafter;
 };
 
+extern const unsigned char x509cert_oid_CN[];
+extern const unsigned char x509cert_oid_L[];
+extern const unsigned char x509cert_oid_ST[];
+extern const unsigned char x509cert_oid_O[];
+extern const unsigned char x509cert_oid_OU[];
+extern const unsigned char x509cert_oid_C[];
+extern const unsigned char x509cert_oid_STREET[];
+
 /*
  * Encode a DistinguishedName into a buffer (if it is not NULL).
  *
