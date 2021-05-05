@@ -60,11 +60,3 @@ x509cert_req_encoder(const struct asn1_item *item, unsigned char *buf)
 {
 	return x509cert_encode_req(item->val, buf);
 }
-
-size_t
-x509cert_req(const struct x509cert_req *req, const struct x509cert_skey *key, const br_hash_class *hc, unsigned char *buf)
-{
-	struct asn1_item item = {.enc = x509cert_req_encoder, .val = req};
-
-	return x509cert_sign(&item, key, hc, buf);
-}
