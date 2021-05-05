@@ -18,7 +18,9 @@ static struct asn1_item *alts;
 static void
 usage(void)
 {
-	fprintf(stderr, "usage: %s [-r] [-a altname]... [-c issuercert] [-k issuerkey] [-d duration] [-s serial] subject key\n", argv0);
+	fprintf(stderr,
+		"usage: %s [-C] [-a altname]... [-c issuercert] [-k issuerkey] [-d duration] [-s serial] subject key\n"
+		"       %s -r [-a altname]... subject key\n", argv0, argv0);
 	exit(1);
 }
 
