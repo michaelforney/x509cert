@@ -1,0 +1,91 @@
+.Dd May 4, 2021
+.Dt X509CERT 1
+.Os
+.Sh NAME
+.Nm x509cert
+.Nd X.509 certificate tool
+.Sh SYNOPSIS
+.Nm
+.Op Fl C
+.Op Fl c Ar issuercert
+.Op Fl k Ar issuerkey
+.Op Fl s Ar serial
+.Op Fl d Ar duration
+.Oo Fl a Ar altname Oc Ns ...
+.Ar subject
+.Ar key
+.Nm
+.Fl r
+.Oo Fl a Ar altname Oc Ns ...
+.Ar subject
+.Ar key
+.Sh DESCRIPTION
+.Nm
+is a tool to generate X.509 certificates and certificate requests.
+.Pp
+The
+.Ar subject
+is given as an RFC 1779 string representation of an X.501
+DistinguishedName.
+For example,
+.Qq C=US,CN=example.com .
+.Pp
+The
+.Ar key
+must be a PEM-encoded RSA or EC private key in raw or PKCS#8 format.
+Keys can be generated using the
+.Xr brssl 1
+tool.
+.Sh OPTIONS
+.Bl -tag -width Ds
+.It Fl C
+Set the CA flag in a
+.Cm basicConstraints
+extension.
+This indicates that the subject is a certificate authority, and its
+public key can be used to verify certificates.
+.It Fl c
+The certificate of the authority with which to sign the certificate.
+The corresponding key must be given with the
+.Fl k
+option.
+.It Fl k
+The private key to sign the certificate with.
+The corresponding certificate must be given with the
+.Fl c
+option.
+.It Fl s
+The serial number in the resulting certificate, given as a hexadecimal
+string of at most 16 bytes.
+If not specified, a random 16 byte serial is generated using
+.Xr getentropy 3 .
+.It Fl d
+The duration for which the certificate is valid, in seconds.
+If not specified, defaults to 30 days.
+.It Fl a
+Add a
+.Cm subjectAltName
+extension containing a
+.Cm dNSName
+given by
+.Ar altname .
+May be specified multiple times.
+.It Fl r
+Generate a
+.Cm CertificateRequest
+instead of a
+.Cm Certificate .
+.El
+.Sh EXAMPLES
+Generate a self-signed certificate with a common name of example.com
+using the private key in
+.Pa key.pem .
+.Pp
+.Dl x509cert CN=example.com key.pem > cert.pem
+.Pp
+Generate a certificate request for example.org with alternate name
+www.example.org.
+.Pp
+.Dl x509cert -r -a www.example.org CN=example.org key.pem > req.pem
+.Sh SEE ALSO
+.Xr brssl 1
