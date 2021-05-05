@@ -418,7 +418,7 @@ main(int argc, char *argv[])
 	default:
 		usage();
 	} ARGEND
-	if (argc < 2 || argc > 3 || (rflag && certfile) || !certfile != !keyfile)
+	if (argc < 2 || argc > 3 || (rflag && (certfile || cert.ca)) || !certfile != !keyfile)
 		usage();
 
 	subject.rdn_len = x509cert_dn_string_rdn_len(argv[0]);
