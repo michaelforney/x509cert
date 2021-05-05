@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <link rel="stylesheet" href="mandoc.css" type="text/css" media="all"/>
+  <title>X509CERT(1)</title>
+</head>
+<body>
+<table class="head">
+  <tr>
+    <td class="head-ltitle">X509CERT(1)</td>
+    <td class="head-vol">General Commands Manual</td>
+    <td class="head-rtitle">X509CERT(1)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<code class="Nm">x509cert</code> &#x2014;
+<div class="Nd">X.509 certificate tool</div>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<table class="Nm">
+  <tr>
+    <td><code class="Nm">x509cert</code></td>
+    <td>[<code class="Fl">-C</code>] [<code class="Fl">-c</code>
+      <var class="Ar">issuercert</var>] [<code class="Fl">-k</code>
+      <var class="Ar">issuerkey</var>] [<code class="Fl">-s</code>
+      <var class="Ar">serial</var>] [<code class="Fl">-d</code>
+      <var class="Ar">duration</var>] [<code class="Fl">-a</code>
+      <var class="Ar">altname</var>]... <var class="Ar">subject</var>
+      <var class="Ar">key</var></td>
+  </tr>
+</table>
+<br/>
+<table class="Nm">
+  <tr>
+    <td><code class="Nm">x509cert</code></td>
+    <td><code class="Fl">-r</code> [<code class="Fl">-a</code>
+      <var class="Ar">altname</var>]... <var class="Ar">subject</var>
+      <var class="Ar">key</var></td>
+  </tr>
+</table>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+<code class="Nm">x509cert</code> is a tool to generate X.509 certificates and
+  certificate requests.
+<p class="Pp">The <var class="Ar">subject</var> is given as an RFC 1779 string
+    representation of an X.501 DistinguishedName. For example,
+    &#x201C;C=US,CN=example.com&#x201D;.</p>
+<p class="Pp">The <var class="Ar">key</var> must be a PEM-encoded RSA or EC
+    private key in raw or PKCS#8 format. Keys can be generated using the
+    <a class="Xr">brssl(1)</a> tool.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="OPTIONS"><a class="permalink" href="#OPTIONS">OPTIONS</a></h1>
+<dl class="Bl-tag">
+  <dt><a class="permalink" href="#C"><code class="Fl" id="C">-C</code></a></dt>
+  <dd>Set the CA flag in a <code class="Cm">basicConstraints</code> extension.
+      This indicates that the subject is a certificate authority, and its public
+      key can be used to verify certificates.</dd>
+  <dt><a class="permalink" href="#c"><code class="Fl" id="c">-c</code></a></dt>
+  <dd>The certificate of the authority with which to sign the certificate. The
+      corresponding key must be given with the <code class="Fl">-k</code>
+      option.</dd>
+  <dt><a class="permalink" href="#k"><code class="Fl" id="k">-k</code></a></dt>
+  <dd>The private key to sign the certificate with. The corresponding
+      certificate must be given with the <code class="Fl">-c</code> option.</dd>
+  <dt><a class="permalink" href="#s"><code class="Fl" id="s">-s</code></a></dt>
+  <dd>The serial number in the resulting certificate, given as a hexadecimal
+      string of at most 16 bytes. If not specified, a random 16 byte serial is
+      generated using <a class="Xr">getentropy(3)</a>.</dd>
+  <dt><a class="permalink" href="#d"><code class="Fl" id="d">-d</code></a></dt>
+  <dd>The duration for which the certificate is valid, in seconds. If not
+      specified, defaults to 30 days.</dd>
+  <dt><a class="permalink" href="#a"><code class="Fl" id="a">-a</code></a></dt>
+  <dd>Add a <code class="Cm">subjectAltName</code> extension containing a
+      <code class="Cm">dNSName</code> given by <var class="Ar">altname</var>.
+      May be specified multiple times.</dd>
+  <dt><a class="permalink" href="#r"><code class="Fl" id="r">-r</code></a></dt>
+  <dd>Generate a <code class="Cm">CertificateRequest</code> instead of a
+      <code class="Cm">Certificate</code>.</dd>
+</dl>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+Generate a self-signed certificate with a common name of example.com using the
+  private key in <span class="Pa">key.pem</span>.
+<p class="Pp"></p>
+<div class="Bd Bd-indent"><code class="Li">x509cert CN=example.com key.pem &gt;
+  cert.pem</code></div>
+<p class="Pp">Generate a certificate request for example.org with alternate name
+    www.example.org.</p>
+<p class="Pp"></p>
+<div class="Bd Bd-indent"><code class="Li">x509cert -r -a www.example.org
+  CN=example.org key.pem &gt; req.pem</code></div>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<a class="Xr">brssl(1)</a>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">May 4, 2021</td>
+    <td class="foot-os">Linux 5.11.4+</td>
+  </tr>
+</table>
+</body>
+</html>
