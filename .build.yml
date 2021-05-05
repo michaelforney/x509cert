@@ -1,0 +1,6 @@
+image: alpine/latest
+oauth: pages.sr.ht/PAGES:RW
+sources:
+- https://git.sr.ht/~mcf/x509cert
+tasks:
+- upload: git -C x509cert archive --format=tar.gz @ | acurl -f -Fcontent=@- https://pages.sr.ht/publish/x509cert.mforney.org
