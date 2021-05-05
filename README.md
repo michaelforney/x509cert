@@ -15,4 +15,4 @@ PEM-encoded and written to standard output. For more details, see
 [x509cert.1].
 
 [BearSSL]: https://bearssl.org
-[x509cert.1]: https://x509cert.mforney.org/x509cert.1
+[x509cert.1]: https://x509cert.mforney.org/x509cert.1.html
