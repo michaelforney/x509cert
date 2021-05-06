@@ -8,7 +8,7 @@ INCDIR=$(PREFIX)/include
 MANDIR=$(PREFIX)/share/man
 -include config.mk
 
-CFLAGS+=-Wall -Wpedantic -I .
+CFLAGS+=-Wall -Wpedantic
 LDLIBS=-l bearssl
 
 OBJ=\
@@ -24,7 +24,7 @@ OBJ=\
 
 all: libx509cert.a x509cert
 
-$(OBJ) x509cert.o: asn1.h x509cert.h inner.h
+$(OBJ) x509cert.o: x509cert.h inner.h
 
 libx509cert.a: $(OBJ)
 	$(AR) $(ARFLAGS) $@ $(OBJ)
@@ -32,7 +32,7 @@ libx509cert.a: $(OBJ)
 x509cert: x509cert.o libx509cert.a
 	$(CC) $(LDFLAGS) -o $@ x509cert.o libx509cert.a $(LDLIBS)
 
-install: x509cert x509cert.1 libx509cert.a asn1.h x509cert.h
+install: x509cert x509cert.1 libx509cert.a x509cert.h
 	mkdir -p $(DESTDIR)$(BINDIR)
 	cp x509cert $(DESTDIR)$(BINDIR)/
 	mkdir -p $(DESTDIR)$(MANDIR)/man1
@@ -40,7 +40,7 @@ install: x509cert x509cert.1 libx509cert.a asn1.h x509cert.h
 	mkdir -p $(DESTDIR)$(LIBDIR)
 	cp libx509cert.a $(DESTDIR)$(LIBDIR)/
 	mkdir -p $(DESTDIR)$(INCDIR)
-	cp x509cert.h asn1.h $(DESTDIR)$(INCDIR)/
+	cp x509cert.h $(DESTDIR)$(INCDIR)/
 
 clean:
 	rm -f $(OBJ) libx509cert.a x509cert.o x509cert

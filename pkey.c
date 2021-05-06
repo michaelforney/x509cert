@@ -1,6 +1,5 @@
 #include <assert.h>
 #include <bearssl.h>
-#include "asn1.h"
 #include "x509cert.h"
 
 static size_t
@@ -13,27 +12,27 @@ encode_rsa(const br_rsa_public_key *pk, unsigned char *buf)
 		/* NULL parameters */
 		0x05, 0x00,
 	};
-	struct asn1_item item = {ASN1_SEQUENCE};
-	struct asn1_item key = {ASN1_BITSTRING};
-	struct asn1_item rsa = {ASN1_SEQUENCE};
-	struct asn1_item n, e;
+	struct x509cert_item item = {X509CERT_ASN1_SEQUENCE};
+	struct x509cert_item key = {X509CERT_ASN1_BITSTRING};
+	struct x509cert_item rsa = {X509CERT_ASN1_SEQUENCE};
+	struct x509cert_item n, e;
 	size_t len;
 
-	asn1_uint(&n, pk->n, pk->nlen);
-	asn1_uint(&e, pk->e, pk->elen);
-	rsa.len = asn1_encode(&n, NULL) + asn1_encode(&e, NULL);
-	key.len = 1 + asn1_encode(&rsa, NULL);
-	item.len = sizeof(alg) + asn1_encode(&key, NULL);
-	len = asn1_encode(&item, NULL);
+	x509cert_uint(&n, pk->n, pk->nlen);
+	x509cert_uint(&e, pk->e, pk->elen);
+	rsa.len = x509cert_encode(&n, NULL) + x509cert_encode(&e, NULL);
+	key.len = 1 + x509cert_encode(&rsa, NULL);
+	item.len = sizeof(alg) + x509cert_encode(&key, NULL);
+	len = x509cert_encode(&item, NULL);
 	if (buf) {
 		unsigned char *pos = buf;
-		pos += asn1_encode(&item, pos);
-		pos += asn1_copy(alg, pos);
-		pos += asn1_encode(&key, pos);
+		pos += x509cert_encode(&item, pos);
+		pos += x509cert_copy(alg, pos);
+		pos += x509cert_encode(&key, pos);
 		*pos++ = 0;
-		pos += asn1_encode(&rsa, pos);
-		pos += asn1_encode(&n, pos);
-		pos += asn1_encode(&e, pos);
+		pos += x509cert_encode(&rsa, pos);
+		pos += x509cert_encode(&n, pos);
+		pos += x509cert_encode(&e, pos);
 		assert(pos - buf == len);
 	}
 	return len;
@@ -58,9 +57,9 @@ encode_ec(const br_ec_public_key *pk, unsigned char *buf)
 		/* OID 1.3.132.0.34 - secp521r1 */
 		0x06, 0x05, 0x2b, 0x81, 0x04, 0x00, 0x23,
 	};
-	struct asn1_item item = {ASN1_SEQUENCE};
-	struct asn1_item alg = {ASN1_SEQUENCE};
-	struct asn1_item key = {ASN1_BITSTRING};
+	struct x509cert_item item = {X509CERT_ASN1_SEQUENCE};
+	struct x509cert_item alg = {X509CERT_ASN1_SEQUENCE};
+	struct x509cert_item key = {X509CERT_ASN1_BITSTRING};
 	const unsigned char *curve;
 	size_t len;
 
@@ -70,17 +69,17 @@ encode_ec(const br_ec_public_key *pk, unsigned char *buf)
 	case BR_EC_secp521r1: curve = oid_secp521r1; break;
 	default: return 0;
 	}
-	alg.len = sizeof(oid) + asn1_copy(curve, NULL);
+	alg.len = sizeof(oid) + x509cert_copy(curve, NULL);
 	key.len = 1 + pk->qlen;
-	item.len = asn1_encode(&alg, NULL) + asn1_encode(&key, NULL);
-	len = asn1_encode(&item, NULL);
+	item.len = x509cert_encode(&alg, NULL) + x509cert_encode(&key, NULL);
+	len = x509cert_encode(&item, NULL);
 	if (buf) {
 		unsigned char *pos = buf;
-		pos += asn1_encode(&item, pos);
-		pos += asn1_encode(&alg, pos);
-		pos += asn1_copy(oid, pos);
-		pos += asn1_copy(curve, pos);
-		pos += asn1_encode(&key, pos);
+		pos += x509cert_encode(&item, pos);
+		pos += x509cert_encode(&alg, pos);
+		pos += x509cert_copy(oid, pos);
+		pos += x509cert_copy(curve, pos);
+		pos += x509cert_encode(&key, pos);
 		*pos++ = 0;
 		memcpy(pos, pk->q, pk->qlen);
 		pos += pk->qlen;

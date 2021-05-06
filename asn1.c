@@ -1,5 +1,5 @@
 #include <string.h>
-#include "asn1.h"
+#include "x509cert.h"
 
 static size_t
 encode_len(size_t len, unsigned char *buf)
@@ -23,7 +23,7 @@ encode_len(size_t len, unsigned char *buf)
 }
 
 size_t
-asn1_copy(const unsigned char *oid, unsigned char *buf)
+x509cert_copy(const unsigned char *oid, unsigned char *buf)
 {
 	size_t len = 2 + oid[1];
 
@@ -33,7 +33,7 @@ asn1_copy(const unsigned char *oid, unsigned char *buf)
 }
 
 size_t
-asn1_encode(const struct asn1_item *item, unsigned char *buf)
+x509cert_encode(const struct x509cert_item *item, unsigned char *buf)
 {
 	unsigned char *pos;
 
@@ -54,21 +54,21 @@ asn1_encode(const struct asn1_item *item, unsigned char *buf)
 /*
  * Encode an unsigned ASN.1 INTEGER into a buffer.
  *
- * This routine is separate from asn1_encode since it has to account
+ * This routine is separate from x509cert_encode since it has to account
  * for a zero-length integer, or one with the most-significant bit
  * set.
  */
 static size_t
-encode_uint(const struct asn1_item *uint, unsigned char *buf)
+encode_uint(const struct x509cert_item *uint, unsigned char *buf)
 {
-	struct asn1_item item = {ASN1_INTEGER};
+	struct x509cert_item item = {X509CERT_ASN1_INTEGER};
 	int pad;
 	unsigned char *pos;
 	size_t len;
 
 	pad = uint->len == 0 || *(unsigned char *)uint->val & 0x80;
 	item.len = uint->len + pad;
-	len = asn1_encode(&item, buf);
+	len = x509cert_encode(&item, buf);
 	if (!buf)
 		return len;
 	pos = buf + len;
@@ -80,7 +80,7 @@ encode_uint(const struct asn1_item *uint, unsigned char *buf)
 }
 
 void
-asn1_uint(struct asn1_item *item, const unsigned char *buf, size_t len)
+x509cert_uint(struct x509cert_item *item, const unsigned char *buf, size_t len)
 {
 	while (len > 0 && buf[0] == 0)
 		--len, ++buf;

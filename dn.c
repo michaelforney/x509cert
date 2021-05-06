@@ -1,23 +1,22 @@
 #include <assert.h>
-#include "asn1.h"
 #include "x509cert.h"
 
 static size_t
 encode_rdn(const struct x509cert_rdn *rdn, unsigned char *buf)
 {
-	struct asn1_item item = {ASN1_SET};
-	struct asn1_item attr = {ASN1_SEQUENCE};
+	struct x509cert_item item = {X509CERT_ASN1_SET};
+	struct x509cert_item attr = {X509CERT_ASN1_SEQUENCE};
 	size_t len;
 
-	attr.len = asn1_copy(rdn->oid, NULL) + asn1_encode(&rdn->val, NULL);
-	item.len = asn1_encode(&attr, NULL);
-	len = asn1_encode(&item, NULL);
+	attr.len = x509cert_copy(rdn->oid, NULL) + x509cert_encode(&rdn->val, NULL);
+	item.len = x509cert_encode(&attr, NULL);
+	len = x509cert_encode(&item, NULL);
 	if (buf) {
 		unsigned char *pos = buf;
-		pos += asn1_encode(&item, pos);
-		pos += asn1_encode(&attr, pos);
-		pos += asn1_copy(rdn->oid, pos);
-		pos += asn1_encode(&rdn->val, pos);
+		pos += x509cert_encode(&item, pos);
+		pos += x509cert_encode(&attr, pos);
+		pos += x509cert_copy(rdn->oid, pos);
+		pos += x509cert_encode(&rdn->val, pos);
 		assert(pos - buf == len);
 	}
 	return len;
@@ -26,15 +25,15 @@ encode_rdn(const struct x509cert_rdn *rdn, unsigned char *buf)
 size_t
 x509cert_encode_dn(const struct x509cert_dn *dn, unsigned char *buf)
 {
-	struct asn1_item item = {ASN1_SEQUENCE};
+	struct x509cert_item item = {X509CERT_ASN1_SEQUENCE};
 	size_t len;
 
 	for (size_t i = 0; i < dn->rdn_len; ++i)
 		item.len += encode_rdn(&dn->rdn[i], NULL);
-	len = asn1_encode(&item, NULL);
+	len = x509cert_encode(&item, NULL);
 	if (buf) {
 		unsigned char *pos = buf;
-		pos += asn1_encode(&item, buf);
+		pos += x509cert_encode(&item, buf);
 		for (size_t i = 0; i < dn->rdn_len; ++i)
 			pos += encode_rdn(&dn->rdn[i], pos);
 		assert(pos - buf == len);
@@ -43,7 +42,7 @@ x509cert_encode_dn(const struct x509cert_dn *dn, unsigned char *buf)
 }
 
 size_t
-x509cert_dn_encoder(const struct asn1_item *item, unsigned char *buf)
+x509cert_dn_encoder(const struct x509cert_item *item, unsigned char *buf)
 {
 	return x509cert_encode_dn(item->val, buf);
 }

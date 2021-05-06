@@ -13,7 +13,7 @@ static struct x509cert_dn subject;
 static struct x509cert_req req = {.subject = {.enc = x509cert_dn_encoder, .val = &subject}};
 static struct x509cert_cert cert = {.req = &req};
 static struct x509cert_skey skey;
-static struct asn1_item *alts;
+static struct x509cert_item *alts;
 
 static void
 usage(void)
@@ -58,7 +58,7 @@ xmallocarray(size_t n, size_t m)
 static void
 add_alt(const char *name)
 {
-	struct asn1_item *alt = &alts[req.alts_len++];
+	struct x509cert_item *alt = &alts[req.alts_len++];
 
 	alt->tag = X509CERT_SAN_DNSNAME;
 	alt->len = strlen(name);
@@ -250,7 +250,7 @@ load_key(const char *name, br_x509_pkey *pkey, struct x509cert_skey *skey)
 static void
 append_dn(void *ctx, const void *buf, size_t len)
 {
-	struct asn1_item *item = ctx;
+	struct x509cert_item *item = ctx;
 
 	if (sizeof(issuerbuf) - item->len < len) {
 		fprintf(stderr, "issuer DN is too long");
@@ -267,7 +267,7 @@ append_x509(void *ctx, const void *buf, size_t len)
 }
 
 static size_t
-encode_raw(const struct asn1_item *item, unsigned char *buf)
+encode_raw(const struct x509cert_item *item, unsigned char *buf)
 {
 	if (buf)
 		memcpy(buf, item->val, item->len);
@@ -275,7 +275,7 @@ encode_raw(const struct asn1_item *item, unsigned char *buf)
 }
 
 static void
-load_cert(const char *name, struct asn1_item *item)
+load_cert(const char *name, struct x509cert_item *item)
 {
 	FILE *f;
 	br_pem_decoder_context pemctx;
@@ -358,7 +358,7 @@ hex(int c)
 }
 
 static void
-parse_serial(struct asn1_item *uint, const char *s)
+parse_serial(struct x509cert_item *uint, const char *s)
 {
 	static unsigned char buf[16];
 	unsigned char *dst;
@@ -374,14 +374,14 @@ parse_serial(struct asn1_item *uint, const char *s)
 	}
 	for (dst = buf; *s; ++dst, s += 2)
 		*dst = hex(s[0]) << 4 | hex(s[1]);
-	asn1_uint(uint, buf, dst - buf);
+	x509cert_uint(uint, buf, dst - buf);
 }
 
 int
 main(int argc, char *argv[])
 {
 	int rflag = 0;
-	struct asn1_item item;
+	struct x509cert_item item;
 	unsigned long duration = 32ul * 24 * 60 * 60;
 	unsigned char *out, *pem;
 	size_t outlen, pemlen;
@@ -450,7 +450,7 @@ main(int argc, char *argv[])
 				perror("getentropy");
 				return 1;
 			}
-			asn1_uint(&cert.serial, serialbuf, sizeof(serialbuf));
+			x509cert_uint(&cert.serial, serialbuf, sizeof(serialbuf));
 		}
 		cert.notbefore = time(NULL);
 		cert.notafter = cert.notbefore + duration;

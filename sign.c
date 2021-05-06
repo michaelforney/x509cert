@@ -13,7 +13,7 @@ x509cert_encode_sign_alg(int key, int hash, unsigned char *buf)
 		0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x0b,
 	};
 	static const unsigned char null[] = {0x05, 0x00};
-	struct asn1_item alg = {ASN1_SEQUENCE};
+	struct x509cert_item alg = {X509CERT_ASN1_SEQUENCE};
 	const unsigned char *oid = NULL, *params;
 	size_t len;
 
@@ -33,26 +33,26 @@ x509cert_encode_sign_alg(int key, int hash, unsigned char *buf)
 	}
 	if (!oid)
 		return 0;
-	alg.len = asn1_copy(oid, NULL);
+	alg.len = x509cert_copy(oid, NULL);
 	if (params)
-		alg.len += asn1_copy(params, NULL);
-	len = asn1_encode(&alg, NULL);
+		alg.len += x509cert_copy(params, NULL);
+	len = x509cert_encode(&alg, NULL);
 	if (buf) {
 		unsigned char *pos = buf;
-		pos += asn1_encode(&alg, pos);
-		pos += asn1_copy(oid, pos);
+		pos += x509cert_encode(&alg, pos);
+		pos += x509cert_copy(oid, pos);
 		if (params)
-			pos += asn1_copy(params, pos);
+			pos += x509cert_copy(params, pos);
 		assert(pos - buf == len);
 	}
 	return len;
 }
 
 size_t
-x509cert_sign(const struct asn1_item *data, const struct x509cert_skey *key, const br_hash_class *hc, unsigned char *buf)
+x509cert_sign(const struct x509cert_item *data, const struct x509cert_skey *key, const br_hash_class *hc, unsigned char *buf)
 {
-	struct asn1_item sig = {ASN1_BITSTRING};
-	struct asn1_item item = {ASN1_SEQUENCE};
+	struct x509cert_item sig = {X509CERT_ASN1_BITSTRING};
+	struct x509cert_item item = {X509CERT_ASN1_SEQUENCE};
 	const unsigned char *oid;
 	unsigned char *pos, *sigpos, *datapos, *newdatapos;
 	unsigned char hash[64];
@@ -83,18 +83,18 @@ x509cert_sign(const struct asn1_item *data, const struct x509cert_skey *key, con
 		return 0;
 
 	sig.len = ++sigmax;
-	item.len = asn1_encode(data, NULL);
+	item.len = x509cert_encode(data, NULL);
 	if (item.len == 0)
 		return 0;
-	item.len += x509cert_encode_sign_alg(key->type, hashid, NULL) + asn1_encode(&sig, NULL);
+	item.len += x509cert_encode_sign_alg(key->type, hashid, NULL) + x509cert_encode(&sig, NULL);
 
 	if (!buf)
-		return asn1_encode(&item, NULL);
+		return x509cert_encode(&item, NULL);
 
 	pos = buf;
-	pos += asn1_encode(&item, pos);
+	pos += x509cert_encode(&item, pos);
 	datapos = pos;
-	pos += asn1_encode(data, pos);
+	pos += x509cert_encode(data, pos);
 
 	hc->init(&ctx.vtable);
 	hc->update(&ctx.vtable, datapos, pos - datapos);
@@ -102,7 +102,7 @@ x509cert_sign(const struct asn1_item *data, const struct x509cert_skey *key, con
 
 	pos += x509cert_encode_sign_alg(key->type, hashid, pos);
 	sigpos = pos;
-	pos += asn1_encode(&sig, pos);
+	pos += x509cert_encode(&sig, pos);
 	*pos = 0;
 	switch (key->type) {
 	case BR_KEYTYPE_RSA:
@@ -124,7 +124,7 @@ x509cert_sign(const struct asn1_item *data, const struct x509cert_skey *key, con
 		 * signatures. If support for those is added, we'll
 		 * need a temporary signature buffer.
 		 */
-		asn1_encode(&sig, sigpos);
+		x509cert_encode(&sig, sigpos);
 		break;
 	}
 	pos += sig.len;
@@ -135,7 +135,7 @@ x509cert_sign(const struct asn1_item *data, const struct x509cert_skey *key, con
 	 * data into the correct position.
 	 */
 	item.len -= sigmax - sig.len;
-	newdatapos = buf + asn1_encode(&item, buf);
+	newdatapos = buf + x509cert_encode(&item, buf);
 	memmove(newdatapos, datapos, pos - datapos);
 
 	return (newdatapos - buf) + (pos - datapos);

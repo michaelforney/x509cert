@@ -1,9 +1,57 @@
 #ifndef X509CERT_H
 #define X509CERT_H
 
-#include <asn1.h>
 #include <bearssl.h>
 #include <time.h>
+
+struct x509cert_item;
+
+typedef size_t x509cert_encoder(const struct x509cert_item *, unsigned char *);
+
+enum {
+	X509CERT_ASN1_INTEGER         = 0x02,
+	X509CERT_ASN1_BITSTRING       = 0x03,
+	X509CERT_ASN1_OCTETSTRING     = 0x04,
+	X509CERT_ASN1_NULL            = 0x05,
+	X509CERT_ASN1_OID             = 0x06,
+	X509CERT_ASN1_UTF8STRING      = 0x0c,
+	X509CERT_ASN1_IA5STRING       = 0x16,
+	X509CERT_ASN1_GENERALIZEDTIME = 0x18,
+	X509CERT_ASN1_SEQUENCE        = 0x30,
+	X509CERT_ASN1_SET             = 0x31,
+};
+
+struct x509cert_item {
+	int tag;
+	size_t len;
+	const void *val;
+	x509cert_encoder *enc;
+};
+
+/*
+ * Encode an ASN.1 item into a buffer.
+ *
+ * If the buffer is NULL, the encoded length of the item is returned.
+ *
+ * Otherwise, the item tag, length, and value (if it is not NULL)
+ * are encoded into the buffer and the number of bytes encoded is
+ * returned.
+ */
+size_t x509cert_encode(const struct x509cert_item *, unsigned char *);
+
+/*
+ * Copy an pre-encoded DER item into a buffer, returning the number
+ * of bytes copied.
+ *
+ * The item size must have been encoded as a single byte.
+ */
+size_t x509cert_copy(const unsigned char *, unsigned char *);
+
+/*
+ * Initialize an unsigned ASN.1 INTEGER from its big-endian byte-string
+ * representation.
+ */
+void x509cert_uint(struct x509cert_item *, const unsigned char *, size_t);
 
 struct x509cert_skey {
 	int type;
@@ -16,7 +64,7 @@ struct x509cert_skey {
 /* X.501 RelativeDistinguishedName */
 struct x509cert_rdn {
 	const unsigned char *oid;
-	struct asn1_item val;
+	struct x509cert_item val;
 };
 
 /* X.501 DistinguishedName */
@@ -36,8 +84,8 @@ enum {
 
 /* PKCS#10 CertificateRequestInfo */
 struct x509cert_req {
-	struct asn1_item subject;
-	const struct asn1_item *alts;
+	struct x509cert_item subject;
+	const struct x509cert_item *alts;
 	size_t alts_len;
 	br_x509_pkey pkey;
 };
@@ -45,19 +93,19 @@ struct x509cert_req {
 /* X.509 TBSCertificate */
 struct x509cert_cert {
 	const struct x509cert_req *req;
-	struct asn1_item serial;
+	struct x509cert_item serial;
 	struct {
 		int type;
 		int hash;
 	} alg;
-	struct asn1_item issuer;
+	struct x509cert_item issuer;
 	time_t notbefore, notafter;
 	int ca;
 };
 
-extern asn1_encoder x509cert_dn_encoder;
-extern asn1_encoder x509cert_req_encoder;
-extern asn1_encoder x509cert_cert_encoder;
+extern x509cert_encoder x509cert_dn_encoder;
+extern x509cert_encoder x509cert_req_encoder;
+extern x509cert_encoder x509cert_cert_encoder;
 
 extern const unsigned char x509cert_oid_CN[];
 extern const unsigned char x509cert_oid_L[];
@@ -124,6 +172,6 @@ size_t x509cert_encode_cert(const struct x509cert_cert *, unsigned char *);
  * If the key is not supported or there is an error computing the
  * signature, 0 is returned.
  */
-size_t x509cert_sign(const struct asn1_item *, const struct x509cert_skey *, const br_hash_class *, unsigned char *);
+size_t x509cert_sign(const struct x509cert_item *, const struct x509cert_skey *, const br_hash_class *, unsigned char *);
 
 #endif

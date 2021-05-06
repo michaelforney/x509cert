@@ -21,4 +21,4 @@ size_t x509cert_encode_sign_alg(int key, int hash, unsigned char *);
  *
  * The encoded length of the Extension is returned.
  */
-size_t x509cert_encode_san(const struct asn1_item *, size_t, unsigned char *);
+size_t x509cert_encode_san(const struct x509cert_item *, size_t, unsigned char *);
