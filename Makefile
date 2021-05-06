@@ -12,8 +12,8 @@ CFLAGS+=-Wall -Wpedantic
 LDLIBS=-l bearssl
 
 OBJ=\
-	asn1.o\
 	cert.o\
+	der.o\
 	dn.o\
 	dn_string.o\
 	oid.o\
