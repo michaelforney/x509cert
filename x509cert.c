@@ -60,7 +60,7 @@ add_alt(const char *name)
 {
 	struct asn1_item *alt = &alts[req.alts_len++];
 
-	alt->tag = 0x82;
+	alt->tag = X509CERT_SAN_DNSNAME;
 	alt->len = strlen(name);
 	alt->val = name;
 }

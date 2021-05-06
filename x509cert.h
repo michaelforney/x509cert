@@ -25,6 +25,15 @@ struct x509cert_dn {
 	size_t rdn_len;
 };
 
+/* subjectAltName GeneralName tags (RFC 5280 4.2.1.6) */
+enum {
+	X509CERT_SAN_OTHERNAME  = 0xa0,  /* SEQUENCE { OID, ANY } */
+	X509CERT_SAN_RFC822NAME = 0x81,  /* IA5String */
+	X509CERT_SAN_DNSNAME    = 0x82,  /* IA5String */
+	X509CERT_SAN_URI        = 0x86,  /* IA5String */
+	X509CERT_SAN_IPADDRESS  = 0x87,  /* OCTET STRING */
+};
+
 /* PKCS#10 CertificateRequestInfo */
 struct x509cert_req {
 	struct asn1_item subject;
