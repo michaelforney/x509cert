@@ -21,6 +21,7 @@ enum {
 	X509CERT_ASN1_SET             = 0x31,
 };
 
+/* ASN.1 item */
 struct x509cert_item {
 	int tag;
 	size_t len;
@@ -33,15 +34,22 @@ struct x509cert_item {
  *
  * If the buffer is NULL, the encoded length of the item is returned.
  *
- * Otherwise, the item tag, length, and value (if it is not NULL)
- * are encoded into the buffer and the number of bytes encoded is
- * returned.
+ * Otherwise, if enc is NULL, the item tag, length, and value (if
+ * it is not NULL) are encoded into the buffer and the number of
+ * bytes encoded is returned.
+ *
+ * If enc is not NULL, a custom encoder function is used to encode
+ * the value.
  */
 size_t x509cert_encode(const struct x509cert_item *, unsigned char *);
 
 /*
  * Initialize an unsigned ASN.1 INTEGER from its big-endian byte-string
  * representation.
+ *
+ * This takes care of stripping unnecessary leading zeroes, or
+ * adding a leading zero if the highest bit is set (to prevent
+ * interpretation as a negative integer).
  */
 void x509cert_uint(struct x509cert_item *, const unsigned char *, size_t);
 
@@ -87,8 +95,8 @@ struct x509cert_cert {
 	const struct x509cert_req *req;
 	struct x509cert_item serial;
 	struct {
-		int type;
-		int hash;
+		int type;  /* BR_KEYTYPE_* */
+		int hash;  /* br_*_ID */
 	} alg;
 	struct x509cert_item issuer;
 	time_t notbefore, notafter;
@@ -109,8 +117,6 @@ extern const unsigned char x509cert_oid_STREET[];
 
 /*
  * DER-encode a DistinguishedName into a buffer (if it is not NULL).
- *
- * The item must point to the item member of a struct x509cert_dn.
  *
  * The encoded length of the DN is returned.
  */
@@ -148,8 +154,6 @@ size_t x509cert_encode_req(const struct x509cert_req *, unsigned char *);
  * DER-encode an X.509 TBSCertificate into a buffer (if it is not
  * NULL).
  *
- * This is the to-be-signed data in a Certificate.
- *
  * The encoded length of the TBSCertificate is returned.
  */
 size_t x509cert_encode_cert(const struct x509cert_cert *, unsigned char *);
@@ -160,7 +164,7 @@ size_t x509cert_encode_cert(const struct x509cert_cert *, unsigned char *);
  *
  * If the buffer is NULL, the signature is not computed and the
  * *maximum* length of the SIGNED item is returned. The actual
- * length may be smaller, depending on the signature.
+ * length may be slightly smaller, depending on the signature.
  *
  * If the key is not supported or there is an error computing the
  * signature, 0 is returned.
