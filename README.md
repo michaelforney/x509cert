@@ -4,6 +4,10 @@ x509cert is a tool and library for generating X.509 certificates
 and certificate requests. It is written in C99 and uses [BearSSL]
 to decode keys and compute signatures.
 
+Like BearSSL, libx509cert makes minimal use of the standard library.
+It does not do any dynamic allocation, and uses only a few basic
+libc functions.
+
 ## Tool usage
 
 	x509cert [-C] [-a altname]... [-c issuercert] [-k issuerkey] [-d duration] [-s serial] subject key
