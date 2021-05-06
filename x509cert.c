@@ -62,7 +62,7 @@ add_alt(const char *name)
 
 	alt->tag = 0x82;
 	alt->len = strlen(name);
-	alt->val = (const unsigned char *)name;
+	alt->val = name;
 }
 
 /* bearssl's secret key decoder drops the public key part, so
