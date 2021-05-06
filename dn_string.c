@@ -15,15 +15,15 @@ space(const char **str)
 }
 
 static inline int
-isspecial(int c)
+specialchar(int c)
 {
 	return !!strchr(",=\n+<>#;", c);
 }
 
 static inline int
-isstringchar(int c)
+stringchar(int c)
 {
-	return !isspecial(c) && c != '\\' && c != '"';
+	return !specialchar(c) && c != '\\' && c != '"';
 }
 
 size_t
@@ -103,7 +103,7 @@ x509cert_parse_dn_string(struct x509cert_rdn *rdn, const char *str, void *bufptr
 				++s;
 				quote = 1;
 			}
-			while (isstringchar(*s) || (quote && isspecial(*s))) {
+			while (stringchar(*s) || (quote && specialchar(*s))) {
 				if (*s == '\\')
 					++s;
 				if (buf == bufend)
