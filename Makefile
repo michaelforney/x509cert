@@ -24,7 +24,7 @@ OBJ=\
 
 all: libx509cert.a x509cert
 
-$(OBJ) x509cert.o: asn1.h x509cert.h
+$(OBJ) x509cert.o: asn1.h x509cert.h inner.h
 
 libx509cert.a: $(OBJ)
 	$(AR) $(ARFLAGS) $@ $(OBJ)

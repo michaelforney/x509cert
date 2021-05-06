@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "x509cert.h"
+#include "inner.h"
 
 static size_t
 encode_tm(const struct tm *tm, unsigned char *buf)

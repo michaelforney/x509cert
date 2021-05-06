@@ -1,7 +1,7 @@
 #include <assert.h>
 #include <bearssl.h>
 #include "x509cert.h"
-#include "asn1.h"
+#include "inner.h"
 
 size_t
 x509cert_encode_req(const struct x509cert_req *req, unsigned char *buf)
