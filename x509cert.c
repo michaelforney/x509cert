@@ -128,14 +128,14 @@ clone_rsa_skey(const br_rsa_private_key *s)
 	d = xmalloc(sizeof(*d) + s->plen + s->qlen + s->dplen + s->dqlen + s->iqlen);
 	d->key = *s;
 	d->key.p = d->buf;
-	memcpy(d->key.p, s->p, s->plen);
 	d->key.q = d->key.p + d->key.plen;
-	memcpy(d->key.q, s->q, s->qlen);
 	d->key.dp = d->key.q + d->key.qlen;
-	memcpy(d->key.dp, s->dp, s->dplen);
 	d->key.dq = d->key.dp + d->key.dplen;
-	memcpy(d->key.dq, s->dq, s->dqlen);
 	d->key.iq = d->key.dq + d->key.dqlen;
+	memcpy(d->key.p, s->p, s->plen);
+	memcpy(d->key.q, s->q, s->qlen);
+	memcpy(d->key.dp, s->dp, s->dplen);
+	memcpy(d->key.dq, s->dq, s->dqlen);
 	memcpy(d->key.iq, s->iq, s->iqlen);
 	return &d->key;
 }
