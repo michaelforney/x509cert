@@ -4,16 +4,16 @@
 #include <stddef.h>
 
 enum {
-	ASN1_INTEGER 	     = 0x02,
-	ASN1_BITSTRING 	     = 0x03,
+	ASN1_INTEGER         = 0x02,
+	ASN1_BITSTRING       = 0x03,
 	ASN1_OCTETSTRING     = 0x04,
-	ASN1_NULL 	     = 0x05,
-	ASN1_OID 	     = 0x06,
+	ASN1_NULL            = 0x05,
+	ASN1_OID             = 0x06,
 	ASN1_UTF8STRING      = 0x0c,
 	ASN1_IA5STRING       = 0x16,
 	ASN1_GENERALIZEDTIME = 0x18,
-	ASN1_SEQUENCE 	     = 0x30,
-	ASN1_SET 	     = 0x31,
+	ASN1_SEQUENCE        = 0x30,
+	ASN1_SET             = 0x31,
 };
 
 struct asn1_item;
