@@ -1,5 +1,4 @@
 #include <ctype.h>
-#include <stdlib.h>
 #include "x509cert.h"
 
 static inline void
