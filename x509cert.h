@@ -29,7 +29,7 @@ struct x509cert_item {
 };
 
 /*
- * Encode an ASN.1 item into a buffer.
+ * DER-encode an ASN.1 item into a buffer.
  *
  * If the buffer is NULL, the encoded length of the item is returned.
  *
@@ -108,7 +108,7 @@ extern const unsigned char x509cert_oid_C[];
 extern const unsigned char x509cert_oid_STREET[];
 
 /*
- * Encode a DistinguishedName into a buffer (if it is not NULL).
+ * DER-encode a DistinguishedName into a buffer (if it is not NULL).
  *
  * The item must point to the item member of a struct x509cert_dn.
  *
@@ -137,15 +137,16 @@ size_t x509cert_dn_string_rdn_len(const char *);
 int x509cert_parse_dn_string(struct x509cert_rdn *, const char *, void *, size_t);
 
 /*
- * Encode a PKCS#10 CertificateRequestInfo into a buffer (if it is
- * not NULL).
+ * DER-encode a PKCS#10 CertificateRequestInfo into a buffer (if
+ * it is not NULL).
  *
  * The encoded length of the CertificateRequestInfo is returned.
  */
 size_t x509cert_encode_req(const struct x509cert_req *, unsigned char *);
 
 /*
- * Encode an X.509 TBSCertificate into a buffer (if it is not NULL).
+ * DER-encode an X.509 TBSCertificate into a buffer (if it is not
+ * NULL).
  *
  * This is the to-be-signed data in a Certificate.
  *
@@ -154,8 +155,8 @@ size_t x509cert_encode_req(const struct x509cert_req *, unsigned char *);
 size_t x509cert_encode_cert(const struct x509cert_cert *, unsigned char *);
 
 /*
- * Sign an ASN.1 item, and encode the item and its signature as an
- * X.509 SIGNED{...} item into a buffer (if it is not NULL).
+ * Sign an ASN.1 item, and DER-encode the item and its signature
+ * as an X.509 SIGNED{...} item into a buffer (if it is not NULL).
  *
  * If the buffer is NULL, the signature is not computed and the
  * *maximum* length of the SIGNED item is returned. The actual
