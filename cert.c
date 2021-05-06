@@ -1,5 +1,4 @@
 #include <assert.h>
-#include <stdio.h>
 #include "x509cert.h"
 
 static size_t
