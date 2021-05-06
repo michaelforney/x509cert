@@ -10,7 +10,7 @@ encode_tm(const struct tm *tm, unsigned char *buf)
 
 	if (buf) {
 		snprintf(str, sizeof(str), "%04d%02d%02d%02d%02d%02dZ",
-			(1900 + tm->tm_year) % 10000, tm->tm_mon, tm->tm_mday,
+			(1900 + tm->tm_year) % 10000, tm->tm_mon + 1, tm->tm_mday,
 			tm->tm_hour, tm->tm_min, tm->tm_sec);
 	}
 	return asn1_encode(&item, buf);
