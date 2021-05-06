@@ -1,4 +1,12 @@
 /*
+ * Copy an pre-encoded DER item into a buffer, returning the number
+ * of bytes copied.
+ *
+ * The item size must have been encoded as a single byte.
+ */
+size_t x509cert_copy(const unsigned char *, unsigned char *);
+
+/*
  * Encode a SubjectPublicKeyInfo into a buffer (if it is not NULL).
  *
  * The encoded length of the SubjectPublicKeyInfo is returned.

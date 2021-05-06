@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <bearssl.h>
 #include "x509cert.h"
+#include "inner.h"
 
 static size_t
 encode_rsa(const br_rsa_public_key *pk, unsigned char *buf)

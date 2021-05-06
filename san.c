@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "x509cert.h"
+#include "inner.h"
 
 size_t
 x509cert_encode_san(const struct x509cert_item *alts, size_t n, unsigned char *buf)

@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "x509cert.h"
+#include "inner.h"
 
 size_t
 x509cert_encode_sign_alg(int key, int hash, unsigned char *buf)

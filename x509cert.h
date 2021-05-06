@@ -40,14 +40,6 @@ struct x509cert_item {
 size_t x509cert_encode(const struct x509cert_item *, unsigned char *);
 
 /*
- * Copy an pre-encoded DER item into a buffer, returning the number
- * of bytes copied.
- *
- * The item size must have been encoded as a single byte.
- */
-size_t x509cert_copy(const unsigned char *, unsigned char *);
-
-/*
  * Initialize an unsigned ASN.1 INTEGER from its big-endian byte-string
  * representation.
  */
