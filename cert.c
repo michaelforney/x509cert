@@ -5,13 +5,34 @@
 static size_t
 encode_tm(const struct tm *tm, unsigned char *buf)
 {
+	static const char dec[] = "0123456789";
 	char str[16];
 	struct asn1_item item = {ASN1_GENERALIZEDTIME, 15, str};
+	int x;
 
 	if (buf) {
-		snprintf(str, sizeof(str), "%04d%02d%02d%02d%02d%02dZ",
-			(1900 + tm->tm_year) % 10000, tm->tm_mon + 1, tm->tm_mday,
-			tm->tm_hour, tm->tm_min, tm->tm_sec);
+		x = tm->tm_year;
+		str[3] = dec[x % 10], x /= 10;
+		str[2] = dec[x % 10], x = x / 10 + 19;
+		str[1] = dec[x % 10], x /= 10;
+		str[0] = dec[x % 10];
+		x = tm->tm_mon + 1;
+		str[5] = dec[x % 10], x /= 10;
+		str[4] = dec[x % 10];
+		x = tm->tm_mday;
+		str[7] = dec[x % 10], x /= 10;
+		str[6] = dec[x % 10];
+		x = tm->tm_hour;
+		str[9] = dec[x % 10], x /= 10;
+		str[8] = dec[x % 10];
+		x = tm->tm_min;
+		str[11] = dec[x % 10], x /= 10;
+		str[10] = dec[x % 10];
+		x = tm->tm_sec;
+		str[13] = dec[x % 10], x /= 10;
+		str[12] = dec[x % 10];
+		str[14] = 'Z';
+		str[15] = '\0';
 	}
 	return asn1_encode(&item, buf);
 }

@@ -8,7 +8,7 @@ INCDIR=$(PREFIX)/include
 MANDIR=$(PREFIX)/share/man
 -include config.mk
 
-CFLAGS+=-Wall -Wpedantic -Wno-format-truncation -I .
+CFLAGS+=-Wall -Wpedantic -I .
 LDLIBS=-l bearssl
 
 OBJ=\
