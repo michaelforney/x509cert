@@ -358,7 +358,7 @@ hex(int c)
 }
 
 static void
-parse_serial(struct asn1_uint *uint, const char *s)
+parse_serial(struct asn1_item *uint, const char *s)
 {
 	static unsigned char buf[16];
 	unsigned char *dst;
@@ -445,7 +445,7 @@ main(int argc, char *argv[])
 		item.val = &req;
 	} else {
 		banner = "CERTIFICATE";
-		if (!cert.serial.buf) {
+		if (!cert.serial.val) {
 			if (getentropy(serialbuf, sizeof(serialbuf)) != 0) {
 				perror("getentropy");
 				return 1;

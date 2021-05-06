@@ -27,11 +27,6 @@ struct asn1_item {
 	asn1_encoder *enc;
 };
 
-struct asn1_uint {
-	const unsigned char *buf;
-	size_t len;
-};
-
 /*
  * Encode an ASN.1 item into a buffer.
  *
@@ -55,15 +50,6 @@ size_t asn1_copy(const unsigned char *, unsigned char *);
  * Initialize an unsigned ASN.1 INTEGER from its big-endian byte-string
  * representation.
  */
-void asn1_uint(struct asn1_uint *, const unsigned char *, size_t);
-
-/*
- * Encode an unsigned ASN.1 INTEGER into a buffer.
- *
- * This routine is separate from asn1_encode since it has to account
- * for a zero-length integer, or one with the most-significant bit
- * set.
- */
-size_t asn1_encode_uint(const struct asn1_uint *, unsigned char *);
+void asn1_uint(struct asn1_item *, const unsigned char *, size_t);
 
 #endif

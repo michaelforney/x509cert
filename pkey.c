@@ -16,12 +16,12 @@ encode_rsa(const br_rsa_public_key *pk, unsigned char *buf)
 	struct asn1_item item = {ASN1_SEQUENCE};
 	struct asn1_item key = {ASN1_BITSTRING};
 	struct asn1_item rsa = {ASN1_SEQUENCE};
-	struct asn1_uint n, e;
+	struct asn1_item n, e;
 	size_t len;
 
 	asn1_uint(&n, pk->n, pk->nlen);
 	asn1_uint(&e, pk->e, pk->elen);
-	rsa.len = asn1_encode_uint(&n, NULL) + asn1_encode_uint(&e, NULL);
+	rsa.len = asn1_encode(&n, NULL) + asn1_encode(&e, NULL);
 	key.len = 1 + asn1_encode(&rsa, NULL);
 	item.len = sizeof(alg) + asn1_encode(&key, NULL);
 	len = asn1_encode(&item, NULL);
@@ -32,8 +32,8 @@ encode_rsa(const br_rsa_public_key *pk, unsigned char *buf)
 		pos += asn1_encode(&key, pos);
 		*pos++ = 0;
 		pos += asn1_encode(&rsa, pos);
-		pos += asn1_encode_uint(&n, pos);
-		pos += asn1_encode_uint(&e, pos);
+		pos += asn1_encode(&n, pos);
+		pos += asn1_encode(&e, pos);
 		assert(pos - buf == len);
 	}
 	return len;

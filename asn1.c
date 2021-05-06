@@ -51,24 +51,22 @@ asn1_encode(const struct asn1_item *item, unsigned char *buf)
 	return pos - buf;
 }
 
-void
-asn1_uint(struct asn1_uint *uint, const unsigned char *buf, size_t len)
-{
-	while (len > 0 && buf[0] == 0)
-		--len, ++buf;
-	uint->buf = buf;
-	uint->len = len;
-}
-
-size_t
-asn1_encode_uint(const struct asn1_uint *uint, unsigned char *buf)
+/*
+ * Encode an unsigned ASN.1 INTEGER into a buffer.
+ *
+ * This routine is separate from asn1_encode since it has to account
+ * for a zero-length integer, or one with the most-significant bit
+ * set.
+ */
+static size_t
+encode_uint(const struct asn1_item *uint, unsigned char *buf)
 {
 	struct asn1_item item = {ASN1_INTEGER};
 	int pad;
 	unsigned char *pos;
 	size_t len;
 
-	pad = uint->len == 0 || uint->buf[0] & 0x80;
+	pad = uint->len == 0 || *(unsigned char *)uint->val & 0x80;
 	item.len = uint->len + pad;
 	len = asn1_encode(&item, buf);
 	if (!buf)
@@ -76,7 +74,17 @@ asn1_encode_uint(const struct asn1_uint *uint, unsigned char *buf)
 	pos = buf + len;
 	if (pad)
 		*pos++ = 0;
-	memcpy(pos, uint->buf, uint->len);
+	memcpy(pos, uint->val, uint->len);
 	pos += uint->len;
 	return pos - buf;
+}
+
+void
+asn1_uint(struct asn1_item *item, const unsigned char *buf, size_t len)
+{
+	while (len > 0 && buf[0] == 0)
+		--len, ++buf;
+	item->len = len;
+	item->val = buf;
+	item->enc = encode_uint;
 }

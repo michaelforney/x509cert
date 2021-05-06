@@ -36,7 +36,7 @@ struct x509cert_req {
 /* X.509 TBSCertificate */
 struct x509cert_cert {
 	const struct x509cert_req *req;
-	struct asn1_uint serial;
+	struct asn1_item serial;
 	struct {
 		int type;
 		int hash;
