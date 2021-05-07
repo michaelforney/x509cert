@@ -6,7 +6,8 @@
 .Nm x509cert_sign ,
 .Nm x509cert_encode_req ,
 .Nm x509cert_encode_cert ,
-.Nm x509cert_encode_dn
+.Nm x509cert_encode_dn ,
+.Nm x509cert_uint
 .Nd construct and sign X.509 certificates and certificate requests
 .Pp
 .Nm x509cert_dn_string_rdn_len ,
@@ -29,6 +30,12 @@ string representation
 .Ft size_t
 .Fn x509cert_encode_dn "const struct x509cert_dn *" "unsigned char *"
 .Vt x509cert_encoder x509cert_dn_encoder ;
+.Ft void
+.Fn x509cert_uint "struct x509cert_item *" "unsigned char *" "size_t"
+.Ft size_t
+.Fn x509cert_dn_string_rdn_len "const char *"
+.Ft int
+.Fn x509cert_parse_dn_string "struct x509cert_rdn *" "const char *" "void *" "size_t"
 .Sh DESCRIPTION
 Most functions in
 .Nm libx509cert
@@ -167,7 +174,7 @@ is used for its
 and
 .Va alts_len
 members, which have the same semantics as they do for
-.Fn x509cert_encode_req ,
+.Fn x509cert_encode_req
 except that
 .Va pkey
 needn't match the signing key.
@@ -182,7 +189,7 @@ The type of the CA's signing key.
 This must match the key passed to
 .Fn x509cert_sign .
 .It Va hash_id
-The ID of the hash to use for signing the certificate.
+The ID of the hash used for signing the certificate.
 This must match the hash passed to
 .Fn x509cert_sign .
 .It Va issuer
@@ -244,6 +251,65 @@ function DER-encodes an X.501
 .Em DistinguishedName
 into a buffer.
 RDNs with multiple attributes are not supported.
+.Pp
+The
+.Fn x509cert_uint
+function initializes an ASN.1
+.Em INTEGER
+from its unsigned big-endian bytestring representation.
+It strips any leading zeros and sets a custom encoder which writes
+a leading zero if the integer is 0 or has its highest bit set.
+This ensures correct DER encoding.
+.Pp
+The
+.Fn x509cert_dn_string_rdn_len
+function determines the number of RDNs represented in a RFC 1779
+DN string.
+.Pp
+The
+.Fn x509cert_parse_dn_string
+function parses a subset of the RFC 1779 DN string representation
+into an array of RDNs.
+Multi-valued RDNs, or those with generic OIDs or hexadecimal values
+are not supported.
+The array must be large enough for all RDNs, the number of which
+can be determined with
+.Fn x509cert_dn_string_rdn_len .
+Additionally, a buffer and its size are used to store ASN.1 item contents.
+An upper bound for the size of the buffer is the length of the
+string.
+The buffer may be the same one used for the string, in which case
+the string is overwritten.
+.Pp
+The following attribute names are supported:
+.Bl -tag -offset indent -width Ds
+.It CN
+.Em commonName
+(OID 2.5.4.3)
+.It L
+.Em localityName
+(OID 2.5.4.7)
+.It ST
+.Em stateOrProvinceName
+(OID 2.5.4.8)
+.It O
+.Em organizationName
+(OID 2.5.4.10)
+.It OU
+.Em organizationalUnitName
+(OID 2.5.4.11)
+.It C
+.Em countryName
+(OID 2.5.4.6)
+.It STREET
+.Em streetAddress
+(OID 2.5.4.9)
+.El
+.Pp
+The OIDs for these attributes are also available for explicit
+.Vt struct x509cert_dn
+construction as
+.Va x509cert_oid_* .
 .Sh RETURN VALUES
 The
 .Fn x509cert_encode ,
@@ -251,7 +317,7 @@ The
 .Fn x509cert_encode_cert ,
 and
 .Fn x509cert_encode_dn
-functions return the encoded length of the ASN.1 items, or 0 if the
+functions return the encoded length of the ASN.1 item, or 0 if the
 item cannot be encoded.
 .Pp
 The
@@ -265,5 +331,14 @@ structure if the buffer is
 and the actual encoded length otherwise.
 If the item cannot be encoded, or there is an error computing the
 signature, 0 is returned.
+.Pp
+The
+.Fn x509cert_dn_string_rdn_len
+function returns the number of RDNs described in the string.
+.Pp
+The
+.Fn x509cert_parse_dn_string
+function returns 1 on success, or 0 if the string is invalid or the
+buffer is not large enough.
 .Sh SEE ALSO
 .Xr x509cert 1
