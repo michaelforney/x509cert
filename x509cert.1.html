@@ -58,9 +58,9 @@
 <h1 class="Sh" id="OPTIONS"><a class="permalink" href="#OPTIONS">OPTIONS</a></h1>
 <dl class="Bl-tag">
   <dt><a class="permalink" href="#C"><code class="Fl" id="C">-C</code></a></dt>
-  <dd>Set the CA flag in a <code class="Cm">basicConstraints</code> extension.
-      This indicates that the subject is a certificate authority, and its public
-      key can be used to verify certificates.</dd>
+  <dd>Set the CA flag in a <i class="Em">basicConstraints</i> extension. This
+      indicates that the subject is a certificate authority, and its public key
+      can be used to verify certificates.</dd>
   <dt><a class="permalink" href="#c"><code class="Fl" id="c">-c</code></a></dt>
   <dd>The certificate of the authority with which to sign the certificate. The
       corresponding key must be given with the <code class="Fl">-k</code>
@@ -76,12 +76,12 @@
   <dd>The duration for which the certificate is valid, in seconds. If not
       specified, defaults to 30 days.</dd>
   <dt><a class="permalink" href="#a"><code class="Fl" id="a">-a</code></a></dt>
-  <dd>Add a <code class="Cm">subjectAltName</code> extension containing a
-      <code class="Cm">dNSName</code> given by <var class="Ar">altname</var>.
-      May be specified multiple times.</dd>
+  <dd>Add a <i class="Em">subjectAltName</i> extension containing a
+      <i class="Em">dNSName</i> given by <var class="Ar">altname</var>. May be
+      specified multiple times.</dd>
   <dt><a class="permalink" href="#r"><code class="Fl" id="r">-r</code></a></dt>
-  <dd>Generate a <code class="Cm">CertificateRequest</code> instead of a
-      <code class="Cm">Certificate</code>.</dd>
+  <dd>Generate a <i class="Em">CertificateRequest</i> instead of a
+      <i class="Em">Certificate</i>.</dd>
 </dl>
 </section>
 <section class="Sh">
@@ -100,7 +100,7 @@ Generate a self-signed certificate with a common name of example.com using the
 <section class="Sh">
 <h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
   ALSO</a></h1>
-<a class="Xr">brssl(1)</a>
+<a class="Xr">brssl(1)</a> <a class="Xr">x509cert(3)</a>
 </section>
 </div>
 <table class="foot">

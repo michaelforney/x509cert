@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <link rel="stylesheet" href="mandoc.css" type="text/css" media="all"/>
+  <title>X509CERT(3)</title>
+</head>
+<body>
+<table class="head">
+  <tr>
+    <td class="head-ltitle">X509CERT(3)</td>
+    <td class="head-vol">Library Functions Manual</td>
+    <td class="head-rtitle">X509CERT(3)</td>
+  </tr>
+</table>
+<div class="manual-text">
+<section class="Sh">
+<h1 class="Sh" id="NAME"><a class="permalink" href="#NAME">NAME</a></h1>
+<code class="Nm">x509cert_encode</code>, <code class="Nm">x509cert_sign</code>,
+  <code class="Nm">x509cert_encode_req</code>,
+  <code class="Nm">x509cert_encode_cert</code>,
+  <code class="Nm">x509cert_encode_dn</code> &#x2014;
+<div class="Nd">construct and sign X.509 certificates and certificate requests
+<p class="Pp"><code class="Nm">x509cert_dn_string_rdn_len</code>,
+    <code class="Nm">x509cert_parse_dn_string</code></p>
+</div>
+&#x2014;
+<div class="Nd">parse RFC 1779 <i class="Em">DistinguishedName</i> string
+  representation</div>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SYNOPSIS"><a class="permalink" href="#SYNOPSIS">SYNOPSIS</a></h1>
+<code class="In">#include &lt;<a class="In">x509cert.h</a>&gt;</code>
+<p class="Pp"><var class="Ft">size_t</var>
+  <br/>
+  <code class="Fn">x509cert_encode</code>(<var class="Fa" style="white-space: nowrap;">const
+    struct x509cert_item *</var>,
+    <var class="Fa" style="white-space: nowrap;">unsigned char *</var>);</p>
+<p class="Pp"><var class="Ft">size_t</var>
+  <br/>
+  <code class="Fn">x509cert_sign</code>(<var class="Fa" style="white-space: nowrap;">const
+    struct x509cert_item *</var>,
+    <var class="Fa" style="white-space: nowrap;">const struct x509cert_skey
+    *</var>, <var class="Fa" style="white-space: nowrap;">const br_hash_class
+    *</var>, <var class="Fa" style="white-space: nowrap;">unsigned char
+    *</var>);</p>
+<p class="Pp"><var class="Ft">size_t</var>
+  <br/>
+  <code class="Fn">x509cert_encode_req</code>(<var class="Fa" style="white-space: nowrap;">const
+    struct x509cert_req *</var>,
+    <var class="Fa" style="white-space: nowrap;">unsigned char *</var>);</p>
+<p class="Pp"><var class="Vt">x509cert_encoder x509cert_req_encoder</var>;</p>
+<p class="Pp"><var class="Ft">size_t</var>
+  <br/>
+  <code class="Fn">x509cert_encode_cert</code>(<var class="Fa" style="white-space: nowrap;">const
+    struct x509cert_cert *</var>,
+    <var class="Fa" style="white-space: nowrap;">unsigned char *</var>);</p>
+<p class="Pp"><var class="Vt">x509cert_encoder x509cert_cert_encoder</var>;</p>
+<p class="Pp"><var class="Ft">size_t</var>
+  <br/>
+  <code class="Fn">x509cert_encode_dn</code>(<var class="Fa" style="white-space: nowrap;">const
+    struct x509cert_dn *</var>,
+    <var class="Fa" style="white-space: nowrap;">unsigned char *</var>);</p>
+<p class="Pp"><var class="Vt">x509cert_encoder x509cert_dn_encoder</var>;</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
+Most functions in <code class="Nm">libx509cert</code> follow a similar pattern.
+  They take a pointer to a buffer in which to encode some ASN.1 structure, and
+  return the encoded length, or 0 if it cannot be encoded. In order to determine
+  an appropriate size for this buffer, the function should first be called with
+  <code class="Dv">NULL</code> to compute the encoded size, and then again with
+  an allocated buffer of at least this size. This pattern is captured with the
+  <var class="Vt">x509cert_encoder</var> function typedef.
+<p class="Pp">A general ASN.1 item is represented with <var class="Vt">struct
+    x509cert_item</var>, which has the following members:</p>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt><var class="Va">tag</var></dt>
+  <dd>The item tag.</dd>
+  <dt><var class="Va">len</var></dt>
+  <dd>The length of the item contents in bytes.</dd>
+  <dt><var class="Va">val</var></dt>
+  <dd>The item contents.</dd>
+  <dt><var class="Va">enc</var></dt>
+  <dd>An optional custom encoder for the item.</dd>
+</dl>
+</div>
+<p class="Pp">The <code class="Fn">x509cert_encode</code>() function encodes an
+    ASN.1 item into a buffer. If <var class="Va">enc</var> is
+    <code class="Dv">NULL</code>, the default encoder is used, which encodes
+    <var class="Va">tag</var> and <var class="Va">len</var>, then copies
+    <var class="Va">len</var> bytes from <var class="Va">val</var> into the
+    buffer. Otherwise, the <var class="Va">enc</var> function is called with the
+    item as its argument, which encodes the item some other way. In this case,
+    <var class="Va">val</var> might point to some structure, with
+    <var class="Va">tag</var> and <var class="Va">len</var> unused.</p>
+<p class="Pp">The <code class="Fn">x509cert_sign</code>() function DER-encodes a
+    ASN.1 item along with its signature as an X.509
+    <i class="Em">SIGNED{...}</i> structure into a buffer, returning its length.
+    If the buffer is <code class="Dv">NULL</code>, no encoding or signing takes
+    place. Instead, the maximum length of the encoded item is returned. The
+    actual length may be several bytes smaller. The signature algorithm used is
+    determined by the type of the private key and the hash algorithm. Supported
+    key types are <code class="Li">BR_KEYTYPE_RSA</code> and
+    <code class="Li">BR_KEYTYPE_EC</code>.</p>
+<p class="Pp">A certificate request is described by <var class="Vt">struct
+    x509cert_req</var>, which has the following members:</p>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt><var class="Va">subject</var></dt>
+  <dd>The subject of the requested certificate. Must encode as an X.501
+      <i class="Em">DistinguishedName</i>.</dd>
+  <dt><var class="Va">pkey</var></dt>
+  <dd>The public key of the requested certificate. This must match the key
+      passed to <code class="Fn">x509cert_sign</code>().</dd>
+  <dt><var class="Va">alts</var></dt>
+  <dd>An array of alternate names to add in a <i class="Em">subjectAltName</i>
+      extension.</dd>
+  <dt><var class="Va">alts_len</var></dt>
+  <dd>The length of the <var class="Va">alts</var> array.</dd>
+</dl>
+</div>
+<p class="Pp">The <code class="Fn">x509cert_encode_req</code>() function
+    DER-encodes a PKCS#10 <i class="Em">CertificateRequestInfo</i> into a
+    buffer. If <var class="Va">alts_len</var> is positive, an extension request
+    is added for <i class="Em">subjectAltName</i> containing the alternate names
+    given in <var class="Va">alts</var>. Each one must have a one of the
+    following tags and correseponding value type:</p>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt><a class="permalink" href="#X509CERT_SAN_OTHERNAME"><code class="Dv" id="X509CERT_SAN_OTHERNAME">X509CERT_SAN_OTHERNAME</code></a></dt>
+  <dd><i class="Em">SEQUENCE { OID, ANY }</i></dd>
+  <dt><a class="permalink" href="#X509CERT_SAN_RFC822NAME"><code class="Dv" id="X509CERT_SAN_RFC822NAME">X509CERT_SAN_RFC822NAME</code></a></dt>
+  <dd><i class="Em">IA5String</i></dd>
+  <dt><a class="permalink" href="#X509CERT_SAN_DNSNAME"><code class="Dv" id="X509CERT_SAN_DNSNAME">X509CERT_SAN_DNSNAME</code></a></dt>
+  <dd><i class="Em">IA5String</i></dd>
+  <dt><a class="permalink" href="#X509CERT_SAN_URI"><code class="Dv" id="X509CERT_SAN_URI">X509CERT_SAN_URI</code></a></dt>
+  <dd><i class="Em">IA5String</i></dd>
+  <dt><a class="permalink" href="#X509CERT_SAN_IPADDRESS"><code class="Dv" id="X509CERT_SAN_IPADDRESS">X509CERT_SAN_IPADDRESS</code></a></dt>
+  <dd><i class="Em">OCTET STRING</i></dd>
+</dl>
+</div>
+<p class="Pp">A certificate is described by <var class="Vt">struct
+    x509cert_cert</var>, which has the following members:</p>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt><var class="Va">req</var></dt>
+  <dd>An inner <var class="Vt">struct x509cert_req</var> is used for its
+      <var class="Va">subject</var>, <var class="Va">pkey</var>,
+      <var class="Va">alts</var>, and <var class="Va">alts_len</var> members,
+      which have the same semantics as they do for
+      <code class="Fn">x509cert_encode_req</code>(), except that
+      <var class="Va">pkey</var> needn't match the signing key.</dd>
+  <dt><var class="Va">serial</var></dt>
+  <dd>The serial number of the certificate. Must be unique for each certificate
+      issued by a given CA, and encode as an ASN.1 <i class="Em">INTEGER</i> at
+      most 20 bytes long.</dd>
+  <dt><var class="Va">key_type</var></dt>
+  <dd>The type of the CA's signing key. This must match the key passed to
+      <code class="Fn">x509cert_sign</code>().</dd>
+  <dt><var class="Va">hash_id</var></dt>
+  <dd>The ID of the hash to use for signing the certificate. This must match the
+      hash passed to <code class="Fn">x509cert_sign</code>().</dd>
+  <dt><var class="Va">issuer</var></dt>
+  <dd>The name of the certificate issuer. Must encode as an X.501
+      <i class="Em">DistinguishedName</i>.</dd>
+  <dt><var class="Va">notbefore</var></dt>
+  <dd>The Unix time at which the certificate becomes valid.</dd>
+  <dt><var class="Va">notafter</var></dt>
+  <dd>The Unix time after which the certificate is no longer valid.</dd>
+  <dt><var class="Va">ca</var></dt>
+  <dd>Indicates whether or not the subject is a certificate authority.</dd>
+</dl>
+</div>
+<p class="Pp">The <code class="Fn">x509cert_encode_cert</code>() function
+    DER-encodes an X.509 <i class="Em">TBSCertificate</i> into a buffer. If
+    <var class="Va">ca</var> is non-zero, a <i class="Em">basicConstraints</i>
+    extension is added with the <code class="Li">cA</code> field set to
+    <code class="Dv">TRUE</code>, indicating that the subject is a certificate
+    authority.</p>
+<p class="Pp">A distinguished name is represented with <var class="Vt">struct
+    x509cert_dn</var>, which has the following members:</p>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt><var class="Va">rdn</var></dt>
+  <dd>An array of relative distinguished names, starting with the most
+      significant.</dd>
+  <dt><var class="Va">rdn_len</var></dt>
+  <dd>The length of the <var class="Va">rdn</var> array.</dd>
+</dl>
+</div>
+<p class="Pp">Each RDN has type <var class="Vt">struct x509cert_rdn</var>, which
+    has the following members:</p>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt><var class="Va">oid</var></dt>
+  <dd>A pre-encoded OID indicating the attribute type.</dd>
+  <dt><var class="Va">val</var></dt>
+  <dd>The attribute value, which must be a <i class="Em">PrintableString</i> or
+      <i class="Em">UTF8String</i>.</dd>
+</dl>
+</div>
+<p class="Pp">The <code class="Fn">x509cert_encode_dn</code>() function
+    DER-encodes an X.501 <i class="Em">DistinguishedName</i> into a buffer. RDNs
+    with multiple attributes are not supported.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="RETURN_VALUES"><a class="permalink" href="#RETURN_VALUES">RETURN
+  VALUES</a></h1>
+The <code class="Fn">x509cert_encode</code>(),
+  <code class="Fn">x509cert_encode_req</code>(),
+  <code class="Fn">x509cert_encode_cert</code>(), and
+  <code class="Fn">x509cert_encode_dn</code>() functions return the encoded
+  length of the ASN.1 items, or 0 if the item cannot be encoded.
+<p class="Pp">The <code class="Fn">x509cert_sign</code>() function returns the
+    <i class="Em">maximum</i> encoded length of the ASN.1
+    <i class="Em">SIGNED{...}</i> structure if the buffer is
+    <code class="Dv">NULL</code>, and the actual encoded length otherwise. If
+    the item cannot be encoded, or there is an error computing the signature, 0
+    is returned.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
+  ALSO</a></h1>
+<a class="Xr">x509cert(1)</a>
+</section>
+</div>
+<table class="foot">
+  <tr>
+    <td class="foot-date">May 6, 2021</td>
+    <td class="foot-os">Linux 5.11.4+</td>
+  </tr>
+</table>
+</body>
+</html>
