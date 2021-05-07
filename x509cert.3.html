@@ -19,7 +19,8 @@
 <code class="Nm">x509cert_encode</code>, <code class="Nm">x509cert_sign</code>,
   <code class="Nm">x509cert_encode_req</code>,
   <code class="Nm">x509cert_encode_cert</code>,
-  <code class="Nm">x509cert_encode_dn</code> &#x2014;
+  <code class="Nm">x509cert_encode_dn</code>,
+  <code class="Nm">x509cert_uint</code> &#x2014;
 <div class="Nd">construct and sign X.509 certificates and certificate requests
 <p class="Pp"><code class="Nm">x509cert_dn_string_rdn_len</code>,
     <code class="Nm">x509cert_parse_dn_string</code></p>
@@ -62,6 +63,22 @@
     struct x509cert_dn *</var>,
     <var class="Fa" style="white-space: nowrap;">unsigned char *</var>);</p>
 <p class="Pp"><var class="Vt">x509cert_encoder x509cert_dn_encoder</var>;</p>
+<p class="Pp"><var class="Ft">void</var>
+  <br/>
+  <code class="Fn">x509cert_uint</code>(<var class="Fa" style="white-space: nowrap;">struct
+    x509cert_item *</var>, <var class="Fa" style="white-space: nowrap;">unsigned
+    char *</var>,
+  <var class="Fa" style="white-space: nowrap;">size_t</var>);</p>
+<p class="Pp"><var class="Ft">size_t</var>
+  <br/>
+  <code class="Fn">x509cert_dn_string_rdn_len</code>(<var class="Fa" style="white-space: nowrap;">const
+    char *</var>);</p>
+<p class="Pp"><var class="Ft">int</var>
+  <br/>
+  <code class="Fn">x509cert_parse_dn_string</code>(<var class="Fa" style="white-space: nowrap;">struct
+    x509cert_rdn *</var>, <var class="Fa" style="white-space: nowrap;">const
+    char *</var>, <var class="Fa" style="white-space: nowrap;">void *</var>,
+    <var class="Fa" style="white-space: nowrap;">size_t</var>);</p>
 </section>
 <section class="Sh">
 <h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
@@ -150,7 +167,7 @@ Most functions in <code class="Nm">libx509cert</code> follow a similar pattern.
       <var class="Va">subject</var>, <var class="Va">pkey</var>,
       <var class="Va">alts</var>, and <var class="Va">alts_len</var> members,
       which have the same semantics as they do for
-      <code class="Fn">x509cert_encode_req</code>(), except that
+      <code class="Fn">x509cert_encode_req</code>() except that
       <var class="Va">pkey</var> needn't match the signing key.</dd>
   <dt><var class="Va">serial</var></dt>
   <dd>The serial number of the certificate. Must be unique for each certificate
@@ -160,7 +177,7 @@ Most functions in <code class="Nm">libx509cert</code> follow a similar pattern.
   <dd>The type of the CA's signing key. This must match the key passed to
       <code class="Fn">x509cert_sign</code>().</dd>
   <dt><var class="Va">hash_id</var></dt>
-  <dd>The ID of the hash to use for signing the certificate. This must match the
+  <dd>The ID of the hash used for signing the certificate. This must match the
       hash passed to <code class="Fn">x509cert_sign</code>().</dd>
   <dt><var class="Va">issuer</var></dt>
   <dd>The name of the certificate issuer. Must encode as an X.501
@@ -204,6 +221,44 @@ Most functions in <code class="Nm">libx509cert</code> follow a similar pattern.
 <p class="Pp">The <code class="Fn">x509cert_encode_dn</code>() function
     DER-encodes an X.501 <i class="Em">DistinguishedName</i> into a buffer. RDNs
     with multiple attributes are not supported.</p>
+<p class="Pp">The <code class="Fn">x509cert_uint</code>() function initializes
+    an ASN.1 <i class="Em">INTEGER</i> from its unsigned big-endian bytestring
+    representation. It strips any leading zeros and sets a custom encoder which
+    writes a leading zero if the integer is 0 or has its highest bit set. This
+    ensures correct DER encoding.</p>
+<p class="Pp">The <code class="Fn">x509cert_dn_string_rdn_len</code>() function
+    determines the number of RDNs represented in a RFC 1779 DN string.</p>
+<p class="Pp">The <code class="Fn">x509cert_parse_dn_string</code>() function
+    parses a subset of the RFC 1779 DN string representation into an array of
+    RDNs. Multi-valued RDNs, or those with generic OIDs or hexadecimal values
+    are not supported. The array must be large enough for all RDNs, the number
+    of which can be determined with
+    <code class="Fn">x509cert_dn_string_rdn_len</code>(). Additionally, a buffer
+    and its size are used to store ASN.1 item contents. An upper bound for the
+    size of the buffer is the length of the string. The buffer may be the same
+    one used for the string, in which case the string is overwritten.</p>
+<p class="Pp">The following attribute names are supported:</p>
+<div class="Bd-indent">
+<dl class="Bl-tag">
+  <dt>CN</dt>
+  <dd><i class="Em">commonName</i> (OID 2.5.4.3)</dd>
+  <dt>L</dt>
+  <dd><i class="Em">localityName</i> (OID 2.5.4.7)</dd>
+  <dt>ST</dt>
+  <dd><i class="Em">stateOrProvinceName</i> (OID 2.5.4.8)</dd>
+  <dt>O</dt>
+  <dd><i class="Em">organizationName</i> (OID 2.5.4.10)</dd>
+  <dt>OU</dt>
+  <dd><i class="Em">organizationalUnitName</i> (OID 2.5.4.11)</dd>
+  <dt>C</dt>
+  <dd><i class="Em">countryName</i> (OID 2.5.4.6)</dd>
+  <dt>STREET</dt>
+  <dd><i class="Em">streetAddress</i> (OID 2.5.4.9)</dd>
+</dl>
+</div>
+<p class="Pp">The OIDs for these attributes are also available for explicit
+    <var class="Vt">struct x509cert_dn</var> construction as
+    <var class="Va">x509cert_oid_*</var>.</p>
 </section>
 <section class="Sh">
 <h1 class="Sh" id="RETURN_VALUES"><a class="permalink" href="#RETURN_VALUES">RETURN
@@ -212,13 +267,18 @@ The <code class="Fn">x509cert_encode</code>(),
   <code class="Fn">x509cert_encode_req</code>(),
   <code class="Fn">x509cert_encode_cert</code>(), and
   <code class="Fn">x509cert_encode_dn</code>() functions return the encoded
-  length of the ASN.1 items, or 0 if the item cannot be encoded.
+  length of the ASN.1 item, or 0 if the item cannot be encoded.
 <p class="Pp">The <code class="Fn">x509cert_sign</code>() function returns the
     <i class="Em">maximum</i> encoded length of the ASN.1
     <i class="Em">SIGNED{...}</i> structure if the buffer is
     <code class="Dv">NULL</code>, and the actual encoded length otherwise. If
     the item cannot be encoded, or there is an error computing the signature, 0
     is returned.</p>
+<p class="Pp">The <code class="Fn">x509cert_dn_string_rdn_len</code>() function
+    returns the number of RDNs described in the string.</p>
+<p class="Pp">The <code class="Fn">x509cert_parse_dn_string</code>() function
+    returns 1 on success, or 0 if the string is invalid or the buffer is not
+    large enough.</p>
 </section>
 <section class="Sh">
 <h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
@@ -229,7 +289,7 @@ The <code class="Fn">x509cert_encode</code>(),
 <table class="foot">
   <tr>
     <td class="foot-date">May 6, 2021</td>
-    <td class="foot-os">Linux 5.11.4+</td>
+    <td class="foot-os">Linux 5.12.0+</td>
   </tr>
 </table>
 </body>
