@@ -167,11 +167,11 @@ load_key(const char *name, br_x509_pkey *pkey, struct x509cert_skey *skey)
 	FILE *f;
 	br_pem_decoder_context pemctx;
 	br_skey_decoder_context keyctx;
-	const char *pemname = NULL;
+	const char *pemname;
 	struct x509cert_skey tmpkey;
 	unsigned char buf[8192], *pos;
 	size_t len = 0, n;
-	int err;
+	int err, found = 0;
 
 	f = fopen(name, "r");
 	if (!f) {
@@ -199,17 +199,16 @@ load_key(const char *name, br_x509_pkey *pkey, struct x509cert_skey *skey)
 		switch (br_pem_decoder_event(&pemctx)) {
 		case BR_PEM_BEGIN_OBJ:
 			pemname = br_pem_decoder_name(&pemctx);
-			if (strcmp(pemname, BR_ENCODE_PEM_PKCS8) != 0 &&
-			    strcmp(pemname, BR_ENCODE_PEM_RSA_RAW) != 0 &&
-			    strcmp(pemname, BR_ENCODE_PEM_EC_RAW) != 0)
+			if (strcmp(pemname, BR_ENCODE_PEM_PKCS8) == 0 ||
+			    strcmp(pemname, BR_ENCODE_PEM_RSA_RAW) == 0 ||
+			    strcmp(pemname, BR_ENCODE_PEM_EC_RAW) == 0)
 			{
-				pemname = NULL;
-				break;
+				br_pem_decoder_setdest(&pemctx, append_skey, &keyctx);
+				found = 1;
 			}
-			br_pem_decoder_setdest(&pemctx, append_skey, &keyctx);
 			break;
 		case BR_PEM_END_OBJ:
-			if (!pemname)
+			if (!found)
 				break;
 			err = br_skey_decoder_last_error(&keyctx);
 			if (err) {
@@ -218,9 +217,7 @@ load_key(const char *name, br_x509_pkey *pkey, struct x509cert_skey *skey)
 			}
 			tmpkey.type = br_skey_decoder_key_type(&keyctx);
 			break;
-		case 0:
-			break;
-		default:
+		case BR_PEM_ERROR:
 			fprintf(stderr, "parse %s: PEM decoding error\n", name);
 			exit(1);
 		}
@@ -280,10 +277,9 @@ load_cert(const char *name, struct x509cert_item *item)
 	FILE *f;
 	br_pem_decoder_context pemctx;
 	br_x509_decoder_context x509ctx;
-	const char *pemname = NULL;
 	unsigned char buf[8192], *pos;
 	size_t len = 0, n;
-	int err;
+	int err, found = 0;
 
 	f = fopen(name, "r");
 	if (!f) {
@@ -309,14 +305,13 @@ load_cert(const char *name, struct x509cert_item *item)
 		len -= n;
 		switch (br_pem_decoder_event(&pemctx)) {
 		case BR_PEM_BEGIN_OBJ:
-			pemname = br_pem_decoder_name(&pemctx);
-			if (strcmp(pemname, "CERTIFICATE") == 0)
+			if (strcmp(br_pem_decoder_name(&pemctx), "CERTIFICATE") == 0) {
 				br_pem_decoder_setdest(&pemctx, append_x509, &x509ctx);
-			else
-				pemname = NULL;
+				found = 1;
+			}
 			break;
 		case BR_PEM_END_OBJ:
-			if (!pemname)
+			if (!found)
 				break;
 			err = br_x509_decoder_last_error(&x509ctx);
 			if (err) {
@@ -328,9 +323,7 @@ load_cert(const char *name, struct x509cert_item *item)
 				exit(1);
 			}
 			break;
-		case 0:
-			break;
-		default:
+		case BR_PEM_ERROR:
 			fprintf(stderr, "parse %s: PEM decoding error\n", name);
 			exit(1);
 		}
