@@ -1,0 +1,4 @@
+#!/bin/rc
+
+for(f in x509cert.1 x509cert.3)
+	git show master:$f | mandoc -O 'style=mandoc.css' -T html > $f.html
