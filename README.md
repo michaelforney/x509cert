@@ -18,9 +18,10 @@ an X.509 Certificate is created. In either case, the structure is
 PEM-encoded and written to standard output. For more details, see
 [x509cert(1)].
 
-[BearSSL]: https://bearssl.org
-[x509cert(1)]: https://x509cert.mforney.org/x509cert.1.html
-
 ## Library usage
 
-See `x509cert.h`.
+See [x509cert(3)].
+
+[BearSSL]: https://bearssl.org
+[x509cert(1)]: https://x509cert.mforney.org/x509cert.1.html
+[x509cert(3)]: https://x509cert.mforney.org/x509cert.3.html
