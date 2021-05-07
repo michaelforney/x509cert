@@ -85,19 +85,17 @@ enum {
 /* PKCS#10 CertificateRequestInfo */
 struct x509cert_req {
 	struct x509cert_item subject;
+	br_x509_pkey pkey;
 	const struct x509cert_item *alts;
 	size_t alts_len;
-	br_x509_pkey pkey;
 };
 
 /* X.509 TBSCertificate */
 struct x509cert_cert {
 	const struct x509cert_req *req;
 	struct x509cert_item serial;
-	struct {
-		int type;  /* BR_KEYTYPE_* */
-		int hash;  /* br_*_ID */
-	} alg;
+	int key_type;  /* BR_KEYTYPE_* */
+	int hash_id;  /* br_*_ID */
 	struct x509cert_item issuer;
 	time_t notbefore, notafter;
 	int ca;

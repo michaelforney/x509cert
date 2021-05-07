@@ -454,8 +454,8 @@ main(int argc, char *argv[])
 		}
 		cert.notbefore = time(NULL);
 		cert.notafter = cert.notbefore + duration;
-		cert.alg.type = skey.type;
-		cert.alg.hash = br_sha256_ID;
+		cert.key_type = skey.type;
+		cert.hash_id = br_sha256_ID;
 		item.enc = x509cert_cert_encoder;
 		item.val = &cert;
 	}

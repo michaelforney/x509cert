@@ -65,7 +65,7 @@ x509cert_encode_cert(const struct x509cert_cert *cert, unsigned char *buf)
 	size_t len;
 
 	item.len += x509cert_encode(&cert->serial, NULL);
-	len = x509cert_encode_sign_alg(cert->alg.type, cert->alg.hash, NULL);
+	len = x509cert_encode_sign_alg(cert->key_type, cert->hash_id, NULL);
 	if (len == 0)
 		return 0;
 	item.len += len;
@@ -93,7 +93,7 @@ x509cert_encode_cert(const struct x509cert_cert *cert, unsigned char *buf)
 		if (exts.len > 0)
 			pos += x509cert_copy(ver, pos);
 		pos += x509cert_encode(&cert->serial, pos);
-		pos += x509cert_encode_sign_alg(cert->alg.type, cert->alg.hash, pos);
+		pos += x509cert_encode_sign_alg(cert->key_type, cert->hash_id, pos);
 		pos += x509cert_encode(&cert->issuer, pos);
 		pos += x509cert_encode(&validity, pos);
 		if (!(tm = gmtime(&cert->notbefore)))
