@@ -37,6 +37,8 @@ install:
 	cp x509cert $(DESTDIR)$(BINDIR)/
 	mkdir -p $(DESTDIR)$(MANDIR)/man1
 	cp x509cert.1 $(DESTDIR)$(MANDIR)/man1/
+	mkdir -p $(DESTDIR)$(MANDIR)/man3
+	cp x509cert.3 $(DESTDIR)$(MANDIR)/man3/
 	mkdir -p $(DESTDIR)$(LIBDIR)
 	cp libx509cert.a $(DESTDIR)$(LIBDIR)/
 	mkdir -p $(DESTDIR)$(INCDIR)

@@ -1,0 +1,269 @@
+.Dd May 6, 2021
+.Dt X509CERT 3
+.Os
+.Sh NAME
+.Nm x509cert_encode ,
+.Nm x509cert_sign ,
+.Nm x509cert_encode_req ,
+.Nm x509cert_encode_cert ,
+.Nm x509cert_encode_dn
+.Nd construct and sign X.509 certificates and certificate requests
+.Pp
+.Nm x509cert_dn_string_rdn_len ,
+.Nm x509cert_parse_dn_string
+.Nd parse RFC 1779
+.Em DistinguishedName
+string representation
+.Sh SYNOPSIS
+.In x509cert.h
+.Ft size_t
+.Fn x509cert_encode "const struct x509cert_item *" "unsigned char *"
+.Ft size_t
+.Fn x509cert_sign "const struct x509cert_item *" "const struct x509cert_skey *" "const br_hash_class *" "unsigned char *"
+.Ft size_t
+.Fn x509cert_encode_req "const struct x509cert_req *" "unsigned char *"
+.Vt x509cert_encoder x509cert_req_encoder ;
+.Ft size_t
+.Fn x509cert_encode_cert "const struct x509cert_cert *" "unsigned char *"
+.Vt x509cert_encoder x509cert_cert_encoder ;
+.Ft size_t
+.Fn x509cert_encode_dn "const struct x509cert_dn *" "unsigned char *"
+.Vt x509cert_encoder x509cert_dn_encoder ;
+.Sh DESCRIPTION
+Most functions in
+.Nm libx509cert
+follow a similar pattern.
+They take a pointer to a buffer in which to encode some ASN.1
+structure, and return the encoded length, or 0 if it cannot be
+encoded.
+In order to determine an appropriate size for this buffer, the
+function should first be called with
+.Dv NULL
+to compute the encoded size, and then again with an allocated buffer
+of at least this size.
+This pattern is captured with the
+.Vt x509cert_encoder
+function typedef.
+.Pp
+A general ASN.1 item is represented with
+.Vt struct x509cert_item ,
+which has the following members:
+.Bl -tag -offset indent -width Ds
+.It Va tag
+The item tag.
+.It Va len
+The length of the item contents in bytes.
+.It Va val
+The item contents.
+.It Va enc
+An optional custom encoder for the item.
+.El
+.Pp
+The
+.Fn x509cert_encode
+function encodes an ASN.1 item into a buffer.
+If
+.Va enc
+is
+.Dv NULL ,
+the default encoder is used, which encodes
+.Va tag
+and
+.Va len ,
+then copies
+.Va len
+bytes from
+.Va val
+into the buffer.
+Otherwise, the
+.Va enc
+function is called with the item as its argument, which encodes the
+item some other way.
+In this case,
+.Va val
+might point to some structure, with
+.Va tag
+and
+.Va len
+unused.
+.Pp
+The
+.Fn x509cert_sign
+function DER-encodes a ASN.1 item along with its signature as an
+X.509
+.Em SIGNED{...}
+structure into a buffer, returning its length.
+If the buffer is
+.Dv NULL ,
+no encoding or signing takes place.
+Instead, the maximum length of the encoded item is returned.
+The actual length may be several bytes smaller.
+The signature algorithm used is determined by the type of the private
+key and the hash algorithm.
+Supported key types are
+.Li BR_KEYTYPE_RSA
+and
+.Li BR_KEYTYPE_EC .
+.Pp
+A certificate request is described by
+.Vt struct x509cert_req ,
+which has the following members:
+.Bl -tag -width alts_len -offset indent
+.It Va subject
+The subject of the requested certificate.
+Must encode as an X.501
+.Em DistinguishedName .
+.It Va pkey
+The public key of the requested certificate.
+This must match the key passed to
+.Fn x509cert_sign .
+.It Va alts
+An array of alternate names to add in a
+.Em subjectAltName
+extension.
+.It Va alts_len
+The length of the
+.Va alts
+array.
+.El
+.Pp
+The
+.Fn x509cert_encode_req
+function DER-encodes a PKCS#10
+.Em CertificateRequestInfo
+into a buffer.
+If
+.Va alts_len
+is positive, an extension request is added for
+.Em subjectAltName
+containing the alternate names given in
+.Va alts .
+Each one must have a one of the following tags and correseponding
+value type:
+.Bl -tag -offset indent -width "X509CERT_SAN_RFC822NAME"
+.It Dv X509CERT_SAN_OTHERNAME
+.Em SEQUENCE { OID, ANY }
+.It Dv X509CERT_SAN_RFC822NAME
+.Em IA5String
+.It Dv X509CERT_SAN_DNSNAME
+.Em IA5String
+.It Dv X509CERT_SAN_URI
+.Em IA5String
+.It Dv X509CERT_SAN_IPADDRESS
+.Em OCTET STRING
+.El
+.Pp
+A certificate is described by
+.Vt struct x509cert_cert ,
+which has the following members:
+.Bl -tag -offset ident -width notbefore
+.It Va req
+An inner
+.Vt struct x509cert_req
+is used for its
+.Va subject ,
+.Va pkey ,
+.Va alts ,
+and
+.Va alts_len
+members, which have the same semantics as they do for
+.Fn x509cert_encode_req ,
+except that
+.Va pkey
+needn't match the signing key.
+.It Va serial
+The serial number of the certificate.
+Must be unique for each certificate issued by a given CA, and encode
+as an ASN.1
+.Em INTEGER
+at most 20 bytes long.
+.It Va key_type
+The type of the CA's signing key.
+This must match the key passed to
+.Fn x509cert_sign .
+.It Va hash_id
+The ID of the hash to use for signing the certificate.
+This must match the hash passed to
+.Fn x509cert_sign .
+.It Va issuer
+The name of the certificate issuer.
+Must encode as an X.501
+.Em DistinguishedName .
+.It Va notbefore
+The Unix time at which the certificate becomes valid.
+.It Va notafter
+The Unix time after which the certificate is no longer valid.
+.It Va ca
+Indicates whether or not the subject is a certificate authority.
+.El
+.Pp
+The
+.Fn x509cert_encode_cert
+function DER-encodes an X.509
+.Em TBSCertificate
+into a buffer.
+If
+.Va ca
+is non-zero, a
+.Em basicConstraints
+extension is added with the
+.Li cA
+field set to
+.Dv TRUE ,
+indicating that the subject is a certificate authority.
+.Pp
+A distinguished name is represented with
+.Vt struct x509cert_dn ,
+which has the following members:
+.Bl -tag -offset indent -width rdn_len
+.It Va rdn
+An array of relative distinguished names, starting with the most
+significant.
+.It Va rdn_len
+The length of the
+.Va rdn
+array.
+.El
+.Pp
+Each RDN has type
+.Vt struct x509cert_rdn ,
+which has the following members:
+.Bl -tag -offset indent -width Ds
+.It Va oid
+A pre-encoded OID indicating the attribute type.
+.It Va val
+The attribute value, which must be a
+.Em PrintableString
+or
+.Em UTF8String .
+.El
+.Pp
+The
+.Fn x509cert_encode_dn
+function DER-encodes an X.501
+.Em DistinguishedName
+into a buffer.
+RDNs with multiple attributes are not supported.
+.Sh RETURN VALUES
+The
+.Fn x509cert_encode ,
+.Fn x509cert_encode_req ,
+.Fn x509cert_encode_cert ,
+and
+.Fn x509cert_encode_dn
+functions return the encoded length of the ASN.1 items, or 0 if the
+item cannot be encoded.
+.Pp
+The
+.Fn x509cert_sign
+function returns the
+.Em maximum
+encoded length of the ASN.1
+.Em SIGNED{...}
+structure if the buffer is
+.Dv NULL ,
+and the actual encoded length otherwise.
+If the item cannot be encoded, or there is an error computing the
+signature, 0 is returned.
+.Sh SEE ALSO
+.Xr x509cert 1

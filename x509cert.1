@@ -40,7 +40,7 @@ tool.
 .Bl -tag -width Ds
 .It Fl C
 Set the CA flag in a
-.Cm basicConstraints
+.Em basicConstraints
 extension.
 This indicates that the subject is a certificate authority, and its
 public key can be used to verify certificates.
@@ -64,17 +64,17 @@ The duration for which the certificate is valid, in seconds.
 If not specified, defaults to 30 days.
 .It Fl a
 Add a
-.Cm subjectAltName
+.Em subjectAltName
 extension containing a
-.Cm dNSName
+.Em dNSName
 given by
 .Ar altname .
 May be specified multiple times.
 .It Fl r
 Generate a
-.Cm CertificateRequest
+.Em CertificateRequest
 instead of a
-.Cm Certificate .
+.Em Certificate .
 .El
 .Sh EXAMPLES
 Generate a self-signed certificate with a common name of example.com
@@ -89,3 +89,4 @@ www.example.org.
 .Dl x509cert -r -a www.example.org CN=example.org key.pem > req.pem
 .Sh SEE ALSO
 .Xr brssl 1
+.Xr x509cert 3
