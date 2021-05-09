@@ -70,10 +70,10 @@ hexpair(const char *s)
 }
 
 int
-x509cert_parse_dn_string(struct x509cert_rdn *rdn, const char *s, void *bufptr, size_t len)
+x509cert_parse_dn_string(struct x509cert_rdn *rdn, char *s)
 {
 	const char *key;
-	unsigned char *buf = bufptr, *bufend = buf + len, *oid, root;
+	unsigned char *buf = (unsigned char *)s, *oid, root;
 	unsigned long sub;
 	int i, j, n, space;
 
@@ -87,8 +87,6 @@ x509cert_parse_dn_string(struct x509cert_rdn *rdn, const char *s, void *bufptr, 
 		} else if (isdigit(*s)) {
 			/* parse numeric OID */
 			for (i = 0;; ++i, ++s) {
-				if (buf == bufend)
-					return 0;
 				for (sub = 0; '0' <= *s && *s <= '9'; ++s)
 					sub = sub * 10 + *s - '0';
 				switch (i) {
@@ -99,7 +97,7 @@ x509cert_parse_dn_string(struct x509cert_rdn *rdn, const char *s, void *bufptr, 
 					break;
 				case 1:
 					rdn->oid = oid = buf;
-					if (bufend - buf < 3 || (root < 3 && sub > 39))
+					if (root < 3 && sub > 39)
 						return 0;
 					*buf++ = X509CERT_ASN1_OID;
 					*buf++ = 1;
@@ -108,7 +106,7 @@ x509cert_parse_dn_string(struct x509cert_rdn *rdn, const char *s, void *bufptr, 
 				default:
 					for (j = 1; sub >> 7 * j; ++j)
 						;
-					if (bufend - buf < j || 0xff - oid[1] < j)
+					if (0xff - oid[1] < j)
 						return 0;
 					oid[1] += j;
 					while (--j)
@@ -129,18 +127,12 @@ x509cert_parse_dn_string(struct x509cert_rdn *rdn, const char *s, void *bufptr, 
 		case '#':
 			rdn->val.enc = x509cert_raw_encoder;
 			++s;
-			while ((n = hexpair(s)) != -1) {
-				if (buf == bufend)
-					return 0;
-				*buf++ = n;
-				s += 2;
-			}
+			while ((n = hexpair(s)) != -1)
+				*buf++ = n, s += 2;
 			break;
 		default:
 			rdn->val.tag = X509CERT_ASN1_UTF8STRING;
 			while (*s && *s != ',') {
-				if (buf == bufend)
-					return 0;
 				if (strchr("\"+;<>", *s))
 					return 0;
 				space = *s == ' ';

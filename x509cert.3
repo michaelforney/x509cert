@@ -35,7 +35,7 @@ string representation
 .Ft size_t
 .Fn x509cert_dn_string_rdn_len "const char *"
 .Ft int
-.Fn x509cert_parse_dn_string "struct x509cert_rdn *" "const char *" "void *" "size_t"
+.Fn x509cert_parse_dn_string "struct x509cert_rdn *" "char *"
 .Sh DESCRIPTION
 Most functions in
 .Nm libx509cert
@@ -268,17 +268,15 @@ DN string.
 .Pp
 The
 .Fn x509cert_parse_dn_string
-function parses the RFC 4514 DN string representation into an array
-of RDNs.
+function parses the RFC 4514 DN string representation (for example,
+.Li C=US,CN=example.com )
+into an array of RDNs.
 Multi-valued RDNs are not supported.
 The array must be large enough for all RDNs, the number of which
 can be determined with
 .Fn x509cert_dn_string_rdn_len .
-Additionally, a buffer and its size are used to store ASN.1 item contents.
-An upper bound for the size of the buffer is the length of the
-string.
-The buffer may be the same one used for the string, in which case
-the string is overwritten.
+The string buffer is rewritten in-place with RDN values and encoded
+OIDs.
 .Pp
 The following attribute names are supported:
 .Bl -tag -offset indent -width Ds

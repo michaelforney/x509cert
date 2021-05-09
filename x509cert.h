@@ -142,7 +142,7 @@ size_t x509cert_dn_string_rdn_len(const char *);
  *
  * Returns 1 on success, or 0 on parse error.
  */
-int x509cert_parse_dn_string(struct x509cert_rdn *, const char *, void *, size_t);
+int x509cert_parse_dn_string(struct x509cert_rdn *, char *);
 
 /*
  * DER-encode a PKCS#10 CertificateRequestInfo into a buffer (if
