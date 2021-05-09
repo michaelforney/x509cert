@@ -343,5 +343,62 @@ The
 .Fn x509cert_parse_dn_string
 function returns 1 on success, or 0 if the string is invalid or the
 buffer is not large enough.
+.Sh EXAMPLES
+Creating a self-signed certificate for example.com:
+.Bd -literal -offset indent
+#include <stdlib.h>
+#include <x509cert.h>
+
+br_x509_certificate
+selfsigned(const struct x509cert_skey *skey, const br_x509_pkey *pkey)
+{
+	struct x509cert_dn dn = {
+		.rdn = &(struct x509cert_rdn){
+			.oid = x509cert_oid_CN,
+			.val = {
+				.tag = X509CERT_ASN1_UTF8STRING,
+				.len = 11,
+				.val = "example.com",
+			},
+		},
+		.rdn_len = 1,
+	};
+	struct x509cert_cert cert = {
+		.req = &(struct x509cert_req){
+			.subject = {.enc = x509cert_dn_encoder, .val = &dn},
+			.pkey = *pkey,
+		},
+		.serial = {
+			.tag = X509CERT_ASN1_INTEGER,
+			.len = 1,
+			.val = (unsigned char[]){0},
+		},
+		.key_type = pkey->key_type,
+		.hash_id = br_sha256_ID,
+		.issuer = {.enc = x509cert_dn_encoder, .val = &dn}
+	};
+	struct x509cert_item cert_item = {
+		.enc = x509cert_cert_encoder,
+		.val = &cert,
+	};
+	size_t len;
+	unsigned char *buf;
+
+	cert.notbefore = time(NULL);
+	cert.notafter = cert.notbefore + 2592000;
+
+	/* calculate maximum length */
+	len = x509cert_sign(&cert_item, skey, &br_sha256_vtable, NULL);
+	if (len == 0 || !(buf = malloc(len)))
+		return (br_x509_certificate){0};
+	len = x509cert_sign(&cert_item, skey, &br_sha256_vtable, buf);
+	if (len == 0) {
+		free(buf);
+		return (br_x509_certificate){0};
+	}
+
+	return (br_x509_certificate){.data = buf, .data_len = len};
+}
+.Ed
 .Sh SEE ALSO
 .Xr x509cert 1
