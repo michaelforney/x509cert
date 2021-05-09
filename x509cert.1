@@ -10,6 +10,7 @@
 .Op Fl c Ar issuercert
 .Op Fl k Ar issuerkey
 .Op Fl s Ar serial
+.Op Fl b Ar notbefore
 .Op Fl d Ar duration
 .Oo Fl a Ar altname Oc Ns ...
 .Ar subject
@@ -59,6 +60,9 @@ The serial number in the resulting certificate, given as a hexadecimal
 string of at most 16 bytes.
 If not specified, a random 16 byte serial is generated using
 .Xr getentropy 3 .
+.It Fl b
+The Unix time at which the certificate becomes valid.
+If not specified, defaults to the current time.
 .It Fl d
 The duration for which the certificate is valid, in seconds.
 If not specified, defaults to 30 days.

@@ -19,7 +19,7 @@ static void
 usage(void)
 {
 	fprintf(stderr,
-		"usage: %s [-C] [-a altname]... [-c issuercert] [-k issuerkey] [-d duration] [-s serial] subject key\n"
+		"usage: %s [-C] [-a altname]... [-c issuercert] [-k issuerkey] [-b notbefore] [-d duration] [-s serial] subject key\n"
 		"       %s -r [-a altname]... subject key\n", argv0, argv0);
 	exit(1);
 }
@@ -388,6 +388,11 @@ main(int argc, char *argv[])
 	case 'c':
 		certfile = EARGF(usage());
 		break;
+	case 'b':
+		cert.notbefore = strtoul(EARGF(usage()), &end, 0);
+		if (*end)
+			usage();
+		break;
 	case 'd':
 		duration = strtoul(EARGF(usage()), &end, 0);
 		if (*end)
@@ -437,7 +442,8 @@ main(int argc, char *argv[])
 			}
 			x509cert_uint(&cert.serial, serialbuf, sizeof(serialbuf));
 		}
-		cert.notbefore = time(NULL);
+		if (!cert.notbefore)
+			cert.notbefore = time(NULL);
 		cert.notafter = cert.notbefore + duration;
 		cert.key_type = skey.type;
 		cert.hash_id = br_sha256_ID;
