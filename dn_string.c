@@ -102,7 +102,7 @@ x509cert_parse_dn_string(struct x509cert_rdn *rdn, const char *str, void *bufptr
 				++s;
 				quote = 1;
 			}
-			while (stringchar(*s) || (quote && specialchar(*s))) {
+			while (stringchar(*s) || (quote && specialchar(*s)) || *s == '\\') {
 				if (*s == '\\')
 					++s;
 				if (buf == bufend)
@@ -113,6 +113,7 @@ x509cert_parse_dn_string(struct x509cert_rdn *rdn, const char *str, void *bufptr
 				if (*s != '"')
 					return 0;
 				++s;
+				quote = 0;
 			}
 		}
 		rdn->val.tag = X509CERT_ASN1_UTF8STRING;
