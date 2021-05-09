@@ -12,7 +12,7 @@
 .Pp
 .Nm x509cert_dn_string_rdn_len ,
 .Nm x509cert_parse_dn_string
-.Nd parse RFC 1779
+.Nd parse RFC 4514
 .Em DistinguishedName
 string representation
 .Sh SYNOPSIS
@@ -263,15 +263,14 @@ This ensures correct DER encoding.
 .Pp
 The
 .Fn x509cert_dn_string_rdn_len
-function determines the number of RDNs represented in a RFC 1779
+function determines the number of RDNs represented in a RFC 4514
 DN string.
 .Pp
 The
 .Fn x509cert_parse_dn_string
-function parses a subset of the RFC 1779 DN string representation
-into an array of RDNs.
-Multi-valued RDNs, or those with generic OIDs or hexadecimal values
-are not supported.
+function parses the RFC 4514 DN string representation into an array
+of RDNs.
+Multi-valued RDNs are not supported.
 The array must be large enough for all RDNs, the number of which
 can be determined with
 .Fn x509cert_dn_string_rdn_len .
@@ -304,6 +303,12 @@ The following attribute names are supported:
 .It STREET
 .Em streetAddress
 (OID 2.5.4.9)
+.It DC
+.Em domainComponent
+(OID 0.9.2342.19200300.100.1.25)
+.It UID
+.Em userId
+(OID 0.9.2342.19200300.100.1.1)
 .El
 .Pp
 The OIDs for these attributes are also available for explicit

@@ -113,6 +113,8 @@ extern const unsigned char x509cert_oid_O[];
 extern const unsigned char x509cert_oid_OU[];
 extern const unsigned char x509cert_oid_C[];
 extern const unsigned char x509cert_oid_STREET[];
+extern const unsigned char x509cert_oid_DC[];
+extern const unsigned char x509cert_oid_UID[];
 
 /*
  * DER-encode a DistinguishedName into a buffer (if it is not NULL).
@@ -122,13 +124,13 @@ extern const unsigned char x509cert_oid_STREET[];
 size_t x509cert_encode_dn(const struct x509cert_dn *, unsigned char *);
 
 /*
- * Determine the number of RDN components in an RFC 1779 string
+ * Determine the number of RDN components in an RFC 4514 string
  * representation of a DistinguishedName.
  */
 size_t x509cert_dn_string_rdn_len(const char *);
 
 /*
- * Parse an RFC 1779 string representation of a DistinguishedName.
+ * Parse an RFC 4514 string representation of a DistinguishedName.
  *
  * The given buffer is used to store the RDN values. The number of
  * bytes used is less than length of the string. It may point to
