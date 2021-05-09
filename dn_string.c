@@ -1,6 +1,8 @@
 #include <ctype.h>
 #include "x509cert.h"
 
+#define LEN(a) (sizeof(a) / sizeof((a)[0]))
+
 static inline void
 space(const char **str)
 {
@@ -67,8 +69,7 @@ x509cert_parse_dn_string(struct x509cert_rdn *rdn, const char *str, void *bufptr
 		{"STREET", x509cert_oid_STREET},
 	};
 	const char *s, *end;
-	unsigned char *buf = bufptr;
-	unsigned char *bufend = buf + len;
+	unsigned char *buf = bufptr, *bufend = buf + len;
 	int quote = 0;
 
 	s = str;
@@ -81,7 +82,7 @@ x509cert_parse_dn_string(struct x509cert_rdn *rdn, const char *str, void *bufptr
 			while (*s == ' ')
 				++s;
 		}
-		for (size_t i = 0; i < sizeof(keywords) / sizeof(keywords[0]); ++i) {
+		for (size_t i = 0; i < LEN(keywords); ++i) {
 			if (strncmp(keywords[i].key, str, end - str) == 0 && !keywords[i].key[end - str]) {
 				rdn->oid = keywords[i].oid;
 				break;
