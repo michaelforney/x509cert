@@ -88,3 +88,11 @@ x509cert_uint(struct x509cert_item *item, const unsigned char *buf, size_t len)
 	item->val = buf;
 	item->enc = encode_uint;
 }
+
+size_t
+x509cert_raw_encoder(const struct x509cert_item *item, unsigned char *buf)
+{
+	if (buf)
+		memcpy(buf, item->val, item->len);
+	return item->len;
+}

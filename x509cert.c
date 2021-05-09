@@ -263,14 +263,6 @@ append_x509(void *ctx, const void *buf, size_t len)
 	br_x509_decoder_push(ctx, buf, len);
 }
 
-static size_t
-encode_raw(const struct x509cert_item *item, unsigned char *buf)
-{
-	if (buf)
-		memcpy(buf, item->val, item->len);
-	return item->len;
-}
-
 static void
 load_cert(const char *name, struct x509cert_item *item)
 {
@@ -329,7 +321,7 @@ load_cert(const char *name, struct x509cert_item *item)
 		}
 	}
 
-	item->enc = encode_raw;
+	item->enc = x509cert_raw_encoder;
 	item->val = issuerbuf;
 }
 
