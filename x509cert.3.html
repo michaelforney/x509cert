@@ -26,7 +26,7 @@
     <code class="Nm">x509cert_parse_dn_string</code></p>
 </div>
 &#x2014;
-<div class="Nd">parse RFC 1779 <i class="Em">DistinguishedName</i> string
+<div class="Nd">parse RFC 4514 <i class="Em">DistinguishedName</i> string
   representation</div>
 </section>
 <section class="Sh">
@@ -227,12 +227,11 @@ Most functions in <code class="Nm">libx509cert</code> follow a similar pattern.
     writes a leading zero if the integer is 0 or has its highest bit set. This
     ensures correct DER encoding.</p>
 <p class="Pp">The <code class="Fn">x509cert_dn_string_rdn_len</code>() function
-    determines the number of RDNs represented in a RFC 1779 DN string.</p>
+    determines the number of RDNs represented in a RFC 4514 DN string.</p>
 <p class="Pp">The <code class="Fn">x509cert_parse_dn_string</code>() function
-    parses a subset of the RFC 1779 DN string representation into an array of
-    RDNs. Multi-valued RDNs, or those with generic OIDs or hexadecimal values
-    are not supported. The array must be large enough for all RDNs, the number
-    of which can be determined with
+    parses the RFC 4514 DN string representation into an array of RDNs.
+    Multi-valued RDNs are not supported. The array must be large enough for all
+    RDNs, the number of which can be determined with
     <code class="Fn">x509cert_dn_string_rdn_len</code>(). Additionally, a buffer
     and its size are used to store ASN.1 item contents. An upper bound for the
     size of the buffer is the length of the string. The buffer may be the same
@@ -254,6 +253,10 @@ Most functions in <code class="Nm">libx509cert</code> follow a similar pattern.
   <dd><i class="Em">countryName</i> (OID 2.5.4.6)</dd>
   <dt>STREET</dt>
   <dd><i class="Em">streetAddress</i> (OID 2.5.4.9)</dd>
+  <dt>DC</dt>
+  <dd><i class="Em">domainComponent</i> (OID 0.9.2342.19200300.100.1.25)</dd>
+  <dt>UID</dt>
+  <dd><i class="Em">userId</i> (OID 0.9.2342.19200300.100.1.1)</dd>
 </dl>
 </div>
 <p class="Pp">The OIDs for these attributes are also available for explicit
@@ -289,7 +292,7 @@ The <code class="Fn">x509cert_encode</code>(),
 <table class="foot">
   <tr>
     <td class="foot-date">May 6, 2021</td>
-    <td class="foot-os">Linux 5.12.0+</td>
+    <td class="foot-os">Linux 5.11.4+</td>
   </tr>
 </table>
 </body>
