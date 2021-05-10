@@ -1,5 +1,7 @@
 # x509cert
 
+[![builds.sr.ht status](https://builds.sr.ht/~mcf/x509cert.svg)](https://builds.sr.ht/~mcf/x509cert)
+
 x509cert is a tool and library for generating X.509 certificates
 and certificate requests. It is written in C99 and uses [BearSSL]
 to decode keys and compute signatures.
