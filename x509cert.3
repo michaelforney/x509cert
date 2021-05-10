@@ -340,11 +340,9 @@ selfsigned(const struct x509cert_skey *skey, const br_x509_pkey *pkey)
 	struct x509cert_dn dn = {
 		.rdn = &(struct x509cert_rdn){
 			.oid = x509cert_oid_CN,
-			.val = {
-				.tag = X509CERT_ASN1_UTF8STRING,
-				.len = 11,
-				.val = "example.com",
-			},
+			.val.tag = X509CERT_ASN1_UTF8STRING,
+			.val.len = 11,
+			.val.val = "example.com",
 		},
 		.rdn_len = 1,
 	};
