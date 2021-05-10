@@ -353,7 +353,7 @@ selfsigned(const struct x509cert_skey *skey, const br_x509_pkey *pkey)
 			.subject = {.enc = x509cert_dn_encoder, .val = &dn},
 			.pkey = *pkey,
 		},
-		.key_type = pkey->key_type,
+		.key_type = skey->type,
 		.hash_id = br_sha256_ID,
 		.issuer = {.enc = x509cert_dn_encoder, .val = &dn}
 	};
