@@ -106,8 +106,10 @@ The signature algorithm used is determined by the type of the private
 key and the hash algorithm.
 Supported key types are
 .Li BR_KEYTYPE_RSA
+(up to 4096 bit)
 and
-.Li BR_KEYTYPE_EC .
+.Li BR_KEYTYPE_EC
+(secp256r1, secp384r1, secp521r1).
 .Pp
 A certificate request is described by
 .Vt struct x509cert_req ,

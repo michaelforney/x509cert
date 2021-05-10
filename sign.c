@@ -56,7 +56,7 @@ x509cert_sign(const struct x509cert_item *data, const struct x509cert_skey *key,
 	struct x509cert_item item = {X509CERT_ASN1_SEQUENCE};
 	const unsigned char *oid;
 	unsigned char *pos, *sigpos, *datapos, *newdatapos;
-	unsigned char hash[64];
+	unsigned char hash[64], sigbuf[140];
 	int hashid;
 	size_t hashlen, sigmax = 0;
 	br_hash_compat_context ctx;
@@ -77,6 +77,7 @@ x509cert_sign(const struct x509cert_item *data, const struct x509cert_skey *key,
 		switch (key->u.ec->curve) {
 		case BR_EC_secp256r1: sigmax = 72; break;
 		case BR_EC_secp384r1: sigmax = 104; break;
+		case BR_EC_secp521r1: sigmax = 139; break;
 		}
 		break;
 	}
@@ -104,31 +105,24 @@ x509cert_sign(const struct x509cert_item *data, const struct x509cert_skey *key,
 	pos += x509cert_encode_sign_alg(key->type, hashid, pos);
 	sigpos = pos;
 	pos += x509cert_encode(&sig, pos);
-	*pos = 0;
 	switch (key->type) {
 	case BR_KEYTYPE_RSA:
+		pos[0] = 0;
 		if (br_rsa_pkcs1_sign_get_default()(oid, hash, hashlen, key->u.rsa, pos + 1) != 1)
 			return 0;
+		pos += sig.len;
 		break;
 	case BR_KEYTYPE_EC:
 		ec = br_ec_get_default();
-		sig.len = br_ecdsa_sign_asn1_get_default()(ec, hc, hash, key->u.ec, pos + 1);
+		sigbuf[0] = 0;
+		sig.len = br_ecdsa_sign_asn1_get_default()(ec, hc, hash, key->u.ec, sigbuf + 1);
 		if (sig.len == 0)
 			return 0;
 		++sig.len;
-		/*
-		 * Re-encode the signature SEQUENCE header with the
-		 * correct length. Since the maximum length is <128,
-		 * we know the length of the length remains constant.
-		 *
-		 * XXX: This is not necessarily true for secp521r1
-		 * signatures. If support for those is added, we'll
-		 * need a temporary signature buffer.
-		 */
-		x509cert_encode(&sig, sigpos);
+		sig.val = sigbuf;
+		pos = sigpos + x509cert_encode(&sig, sigpos);
 		break;
 	}
-	pos += sig.len;
 
 	/*
 	 * If the length of the outer SEQUENCE length changed due
