@@ -313,7 +313,7 @@ load_cert(const char *name, struct x509cert_item *item)
 		}
 	}
 
-	item->enc = x509cert_raw_encoder;
+	item->tag = 0;
 	item->val = issuerbuf;
 }
 

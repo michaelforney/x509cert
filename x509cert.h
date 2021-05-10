@@ -92,7 +92,6 @@ struct x509cert_cert {
 	int ca;
 };
 
-extern x509cert_encoder x509cert_raw_encoder;
 extern x509cert_encoder x509cert_dn_encoder;
 extern x509cert_encoder x509cert_req_encoder;
 extern x509cert_encoder x509cert_cert_encoder;

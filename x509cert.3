@@ -79,6 +79,11 @@ then copies
 bytes from
 .Va val
 into the buffer.
+If
+.Va tag
+is 0,
+.Va val
+is assumed to be pre-encoded, and no tag-length header is added.
 Otherwise, the
 .Va enc
 function is called with the item as its argument, which encodes the

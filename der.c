@@ -40,6 +40,11 @@ x509cert_encode(const struct x509cert_item *item, unsigned char *buf)
 
 	if (item->enc)
 		return item->enc(item, buf);
+	if (item->tag == 0) {
+		if (buf)
+			memcpy(buf, item->val, item->len);
+		return item->len;
+	}
 	if (!buf)
 		return 1 + encode_len(item->len, NULL) + item->len;
 	pos = buf;
@@ -88,12 +93,4 @@ x509cert_uint(struct x509cert_item *item, const unsigned char *buf, size_t len)
 	item->len = len;
 	item->val = buf;
 	item->enc = encode_uint;
-}
-
-size_t
-x509cert_raw_encoder(const struct x509cert_item *item, unsigned char *buf)
-{
-	if (buf)
-		memcpy(buf, item->val, item->len);
-	return item->len;
 }

@@ -121,17 +121,17 @@ x509cert_parse_dn_string(struct x509cert_rdn *rdn, char *s)
 			return 0;
 		++s;
 		rdn->val.val = buf;
+		rdn->val.enc = NULL;
 		switch (*s) {
 		case ' ':
 			return 0;
 		case '#':
-			rdn->val.enc = x509cert_raw_encoder;
+			rdn->val.tag = 0;
 			++s;
 			while ((n = hexpair(s)) != -1)
 				*buf++ = n, s += 2;
 			break;
 		default:
-			rdn->val.enc = NULL;
 			rdn->val.tag = X509CERT_ASN1_UTF8STRING;
 			space = 0;
 			while (*s && *s != ',') {
