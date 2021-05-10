@@ -123,9 +123,8 @@ size_t x509cert_dn_string_rdn_len(const char *);
 /*
  * Parse an RFC 4514 string representation of a DistinguishedName.
  *
- * The given buffer is used to store the RDN values. The number of
- * bytes used is less than length of the string. It may point to
- * the same buffer as the string.
+ * The given string is rewritten in-place store the encoded OIDs
+ * and RDN values.
  *
  * The RDN array is populated and must be large enough to accomodate
  * all RDN components.
