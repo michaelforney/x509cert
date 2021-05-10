@@ -10,7 +10,7 @@ libc functions.
 
 ## Tool usage
 
-	x509cert [-C] [-a altname]... [-c issuercert] [-k issuerkey] [-d duration] [-s serial] subject key
+	x509cert [-C] [-a altname]... [-c issuercert] [-k issuerkey] [-b notbefore] [-d duration] [-s serial] subject key
 	x509cert -r [-a altname]... subject key
 
 If `-r` is used, a PKCS#10 CertificateRequest is created. Otherwise,
