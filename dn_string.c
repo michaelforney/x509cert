@@ -131,6 +131,7 @@ x509cert_parse_dn_string(struct x509cert_rdn *rdn, char *s)
 				*buf++ = n, s += 2;
 			break;
 		default:
+			rdn->val.enc = NULL;
 			rdn->val.tag = X509CERT_ASN1_UTF8STRING;
 			while (*s && *s != ',') {
 				if (strchr("\"+;<>", *s))
