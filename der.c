@@ -1,5 +1,6 @@
 #include <string.h>
 #include "x509cert.h"
+#include "inner.h"
 
 static size_t
 encode_len(size_t len, unsigned char *buf)
