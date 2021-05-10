@@ -79,12 +79,12 @@ x509cert_parse_dn_string(struct x509cert_rdn *rdn, char *s)
 
 	do {
 		rdn->oid = NULL;
-		if (isalpha(*s)) {
+		if (isalpha((unsigned char)*s)) {
 			key = s;
-			while (isalnum(*++s) || *s == '-')
+			while (isalnum((unsigned char)*++s) || *s == '-')
 				;
 			rdn->oid = keyword(key, s - key);
-		} else if (isdigit(*s)) {
+		} else if (isdigit((unsigned char)*s)) {
 			/* parse numeric OID */
 			for (i = 0;; ++i, ++s) {
 				for (sub = 0; '0' <= *s && *s <= '9'; ++s)
