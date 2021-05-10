@@ -131,7 +131,8 @@ x509cert_sign(const struct x509cert_item *data, const struct x509cert_skey *key,
 	 */
 	item.len -= sigmax - sig.len;
 	newdatapos = buf + x509cert_encode(&item, buf);
-	memmove(newdatapos, datapos, pos - datapos);
+	if (datapos != newdatapos)
+		memmove(newdatapos, datapos, pos - datapos);
 
 	return (newdatapos - buf) + (pos - datapos);
 }
