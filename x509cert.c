@@ -12,7 +12,6 @@ static struct x509cert_dn subject;
 static struct x509cert_req req = {.subject = {.enc = x509cert_dn_encoder, .val = &subject}};
 static struct x509cert_cert cert = {.req = &req};
 static struct x509cert_skey skey;
-static struct x509cert_item *alts;
 
 static void
 usage(void)
@@ -57,7 +56,7 @@ xmallocarray(size_t n, size_t m)
 static void
 add_alt(const char *name)
 {
-	struct x509cert_item *alt = &alts[req.alts_len++];
+	struct x509cert_item *alt = &req.alts[req.alts_len++];
 
 	alt->tag = X509CERT_SAN_DNSNAME;
 	alt->len = strlen(name);
@@ -378,7 +377,7 @@ main(int argc, char *argv[])
 
 	/* at most one subjectAltName per argument */
 	if (argc > 3)
-		req.alts = alts = xmallocarray(argc - 3, sizeof(alts[0]));
+		req.alts = xmallocarray(argc - 3, sizeof(req.alts[0]));
 
 	argv0 = argc ? argv[0] : "x509cert";
 	ARGBEGIN {
