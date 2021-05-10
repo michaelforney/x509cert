@@ -451,7 +451,7 @@ main(int argc, char *argv[])
 		return 1;
 	}
 	pemlen = br_pem_encode(NULL, out, outlen, banner, BR_PEM_LINE64);
-	pem = xmalloc(pemlen);
+	pem = xmalloc(pemlen + 1);
 	br_pem_encode(pem, out, outlen, banner, BR_PEM_LINE64);
 	if (fwrite(pem, 1, pemlen, stdout) != pemlen || fflush(stdout) != 0) {
 		perror("write");
