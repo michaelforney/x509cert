@@ -94,7 +94,7 @@ struct x509cert_req {
 /* X.509 TBSCertificate */
 struct x509cert_cert {
 	const struct x509cert_req *req;
-	struct x509cert_item serial;
+	unsigned char serial[20];
 	int key_type;  /* BR_KEYTYPE_* */
 	int hash_id;  /* br_*_ID */
 	struct x509cert_item issuer;

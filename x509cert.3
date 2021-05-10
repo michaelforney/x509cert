@@ -179,11 +179,8 @@ except that
 .Va pkey
 needn't match the signing key.
 .It Va serial
-The serial number of the certificate.
-Must be unique for each certificate issued by a given CA, and encode
-as an ASN.1
-.Em INTEGER
-at most 20 bytes long.
+The serial number of the certificate, in big-endian format.
+Must be unique for each certificate issued by a given CA.
 .It Va key_type
 The type of the CA's signing key.
 This must match the key passed to
@@ -367,11 +364,6 @@ selfsigned(const struct x509cert_skey *skey, const br_x509_pkey *pkey)
 		.req = &(struct x509cert_req){
 			.subject = {.enc = x509cert_dn_encoder, .val = &dn},
 			.pkey = *pkey,
-		},
-		.serial = {
-			.tag = X509CERT_ASN1_INTEGER,
-			.len = 1,
-			.val = (unsigned char[]){0},
 		},
 		.key_type = pkey->key_type,
 		.hash_id = br_sha256_ID,

@@ -8,7 +8,6 @@
 
 static const char *argv0;
 static unsigned char issuerbuf[4096];
-static unsigned char serialbuf[16];
 static struct x509cert_dn subject;
 static struct x509cert_req req = {.subject = {.enc = x509cert_dn_encoder, .val = &subject}};
 static struct x509cert_cert cert = {.req = &req};
@@ -343,23 +342,27 @@ hex(int c)
 }
 
 static void
-parse_serial(struct x509cert_item *uint, const char *s)
+parse_serial(const char *s)
 {
-	static unsigned char buf[16];
-	unsigned char *dst;
-	const char *end = s + strlen(s);
+	if (s) {
+		unsigned char *dst;
+		const char *end = s + strlen(s);
 
-	if (end == s || (end - s) % 2 != 0) {
-		fprintf(stderr, "invalid serial\n");
+		if (end == s || (end - s) % 2 != 0) {
+			fprintf(stderr, "invalid serial\n");
+			exit(1);
+		}
+		if ((end - s) / 2 > sizeof(cert.serial)) {
+			fprintf(stderr, "serial is too large\n");
+			exit(1);
+		}
+		dst = cert.serial + sizeof(cert.serial) - (end - s) / 2;
+		for (; s != end; s += 2)
+			*dst++ = hex(s[0]) << 4 | hex(s[1]);
+	} else if (getentropy(cert.serial + sizeof(cert.serial) - 16, 16) != 0) {
+		perror("getentropy");
 		exit(1);
 	}
-	if ((end - s) / 2 > sizeof(buf)) {
-		fprintf(stderr, "serial is too large\n");
-		exit(1);
-	}
-	for (dst = buf; *s; ++dst, s += 2)
-		*dst = hex(s[0]) << 4 | hex(s[1]);
-	x509cert_uint(uint, buf, dst - buf);
 }
 
 int
@@ -370,7 +373,7 @@ main(int argc, char *argv[])
 	unsigned long duration = 32ul * 24 * 60 * 60;
 	unsigned char *out, *pem;
 	size_t outlen, pemlen;
-	const char *banner, *certfile = NULL, *keyfile = NULL;
+	const char *banner, *certfile = NULL, *keyfile = NULL, *serial = NULL;
 	char *end;
 
 	/* at most one subjectAltName per argument */
@@ -405,7 +408,7 @@ main(int argc, char *argv[])
 		rflag = 1;
 		break;
 	case 's':
-		parse_serial(&cert.serial, EARGF(usage()));
+		serial = EARGF(usage());
 		break;
 	default:
 		usage();
@@ -435,13 +438,7 @@ main(int argc, char *argv[])
 		item.val = &req;
 	} else {
 		banner = "CERTIFICATE";
-		if (!cert.serial.val) {
-			if (getentropy(serialbuf, sizeof(serialbuf)) != 0) {
-				perror("getentropy");
-				return 1;
-			}
-			x509cert_uint(&cert.serial, serialbuf, sizeof(serialbuf));
-		}
+		parse_serial(serial);
 		if (!cert.notbefore)
 			cert.notbefore = time(NULL);
 		cert.notafter = cert.notbefore + duration;
