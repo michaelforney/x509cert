@@ -38,19 +38,12 @@ xmalloc(size_t n)
 static void *
 xmallocarray(size_t n, size_t m)
 {
-	void *p;
-
 	if (m && n > SIZE_MAX / m) {
 		errno = ENOMEM;
-		p = NULL;
-	} else {
-		p = malloc(n * m);
-	}
-	if (!p) {
 		perror(NULL);
 		exit(1);
 	}
-	return p;
+	return xmalloc(n * m);
 }
 
 static void
