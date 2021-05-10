@@ -19,8 +19,7 @@
 <code class="Nm">x509cert_encode</code>, <code class="Nm">x509cert_sign</code>,
   <code class="Nm">x509cert_encode_req</code>,
   <code class="Nm">x509cert_encode_cert</code>,
-  <code class="Nm">x509cert_encode_dn</code>,
-  <code class="Nm">x509cert_uint</code> &#x2014;
+  <code class="Nm">x509cert_encode_dn</code> &#x2014;
 <div class="Nd">construct and sign X.509 certificates and certificate requests
 <p class="Pp"><code class="Nm">x509cert_dn_string_rdn_len</code>,
     <code class="Nm">x509cert_parse_dn_string</code></p>
@@ -63,12 +62,6 @@
     struct x509cert_dn *</var>,
     <var class="Fa" style="white-space: nowrap;">unsigned char *</var>);</p>
 <p class="Pp"><var class="Vt">x509cert_encoder x509cert_dn_encoder</var>;</p>
-<p class="Pp"><var class="Ft">void</var>
-  <br/>
-  <code class="Fn">x509cert_uint</code>(<var class="Fa" style="white-space: nowrap;">struct
-    x509cert_item *</var>, <var class="Fa" style="white-space: nowrap;">unsigned
-    char *</var>,
-  <var class="Fa" style="white-space: nowrap;">size_t</var>);</p>
 <p class="Pp"><var class="Ft">size_t</var>
   <br/>
   <code class="Fn">x509cert_dn_string_rdn_len</code>(<var class="Fa" style="white-space: nowrap;">const
@@ -76,9 +69,8 @@
 <p class="Pp"><var class="Ft">int</var>
   <br/>
   <code class="Fn">x509cert_parse_dn_string</code>(<var class="Fa" style="white-space: nowrap;">struct
-    x509cert_rdn *</var>, <var class="Fa" style="white-space: nowrap;">const
-    char *</var>, <var class="Fa" style="white-space: nowrap;">void *</var>,
-    <var class="Fa" style="white-space: nowrap;">size_t</var>);</p>
+    x509cert_rdn *</var>, <var class="Fa" style="white-space: nowrap;">char
+    *</var>);</p>
 </section>
 <section class="Sh">
 <h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
@@ -119,8 +111,8 @@ Most functions in <code class="Nm">libx509cert</code> follow a similar pattern.
     place. Instead, the maximum length of the encoded item is returned. The
     actual length may be several bytes smaller. The signature algorithm used is
     determined by the type of the private key and the hash algorithm. Supported
-    key types are <code class="Li">BR_KEYTYPE_RSA</code> and
-    <code class="Li">BR_KEYTYPE_EC</code>.</p>
+    key types are <code class="Li">BR_KEYTYPE_RSA</code> (up to 4096 bit) and
+    <code class="Li">BR_KEYTYPE_EC</code> (secp256r1, secp384r1, secp521r1).</p>
 <p class="Pp">A certificate request is described by <var class="Vt">struct
     x509cert_req</var>, which has the following members:</p>
 <div class="Bd-indent">
@@ -170,9 +162,8 @@ Most functions in <code class="Nm">libx509cert</code> follow a similar pattern.
       <code class="Fn">x509cert_encode_req</code>() except that
       <var class="Va">pkey</var> needn't match the signing key.</dd>
   <dt><var class="Va">serial</var></dt>
-  <dd>The serial number of the certificate. Must be unique for each certificate
-      issued by a given CA, and encode as an ASN.1 <i class="Em">INTEGER</i> at
-      most 20 bytes long.</dd>
+  <dd>The serial number of the certificate, in big-endian format. Must be unique
+      for each certificate issued by a given CA.</dd>
   <dt><var class="Va">key_type</var></dt>
   <dd>The type of the CA's signing key. This must match the key passed to
       <code class="Fn">x509cert_sign</code>().</dd>
@@ -221,21 +212,15 @@ Most functions in <code class="Nm">libx509cert</code> follow a similar pattern.
 <p class="Pp">The <code class="Fn">x509cert_encode_dn</code>() function
     DER-encodes an X.501 <i class="Em">DistinguishedName</i> into a buffer. RDNs
     with multiple attributes are not supported.</p>
-<p class="Pp">The <code class="Fn">x509cert_uint</code>() function initializes
-    an ASN.1 <i class="Em">INTEGER</i> from its unsigned big-endian bytestring
-    representation. It strips any leading zeros and sets a custom encoder which
-    writes a leading zero if the integer is 0 or has its highest bit set. This
-    ensures correct DER encoding.</p>
 <p class="Pp">The <code class="Fn">x509cert_dn_string_rdn_len</code>() function
     determines the number of RDNs represented in a RFC 4514 DN string.</p>
 <p class="Pp">The <code class="Fn">x509cert_parse_dn_string</code>() function
-    parses the RFC 4514 DN string representation into an array of RDNs.
+    parses the RFC 4514 DN string representation (for example,
+    <code class="Li">C=US,CN=example.com</code>) into an array of RDNs.
     Multi-valued RDNs are not supported. The array must be large enough for all
     RDNs, the number of which can be determined with
-    <code class="Fn">x509cert_dn_string_rdn_len</code>(). Additionally, a buffer
-    and its size are used to store ASN.1 item contents. An upper bound for the
-    size of the buffer is the length of the string. The buffer may be the same
-    one used for the string, in which case the string is overwritten.</p>
+    <code class="Fn">x509cert_dn_string_rdn_len</code>(). The string buffer is
+    rewritten in-place with RDN values and encoded OIDs.</p>
 <p class="Pp">The following attribute names are supported:</p>
 <div class="Bd-indent">
 <dl class="Bl-tag">
@@ -282,6 +267,60 @@ The <code class="Fn">x509cert_encode</code>(),
 <p class="Pp">The <code class="Fn">x509cert_parse_dn_string</code>() function
     returns 1 on success, or 0 if the string is invalid or the buffer is not
     large enough.</p>
+</section>
+<section class="Sh">
+<h1 class="Sh" id="EXAMPLES"><a class="permalink" href="#EXAMPLES">EXAMPLES</a></h1>
+Creating a self-signed certificate for example.com:
+<div class="Bd Pp Bd-indent">
+<pre>
+#include &lt;stdlib.h&gt;
+#include &lt;x509cert.h&gt;
+
+br_x509_certificate
+selfsigned(const struct x509cert_skey *skey, const br_x509_pkey *pkey)
+{
+	struct x509cert_dn dn = {
+		.rdn = &amp;(struct x509cert_rdn){
+			.oid = x509cert_oid_CN,
+			.val.tag = X509CERT_ASN1_UTF8STRING,
+			.val.len = 11,
+			.val.val = &quot;example.com&quot;,
+		},
+		.rdn_len = 1,
+	};
+	struct x509cert_cert cert = {
+		.req = &amp;(struct x509cert_req){
+			.subject = {.enc = x509cert_dn_encoder, .val = &amp;dn},
+			.pkey = *pkey,
+		},
+		.key_type = pkey-&gt;key_type,
+		.hash_id = br_sha256_ID,
+		.issuer = {.enc = x509cert_dn_encoder, .val = &amp;dn}
+	};
+	struct x509cert_item cert_item = {
+		.enc = x509cert_cert_encoder,
+		.val = &amp;cert,
+	};
+	size_t len;
+	unsigned char *buf;
+
+	cert.notbefore = time(NULL);
+	cert.notafter = cert.notbefore + 2592000;
+
+	/* calculate maximum length */
+	len = x509cert_sign(&amp;cert_item, skey, &amp;br_sha256_vtable, NULL);
+	if (len == 0 || !(buf = malloc(len)))
+		return (br_x509_certificate){0};
+	len = x509cert_sign(&amp;cert_item, skey, &amp;br_sha256_vtable, buf);
+	if (len == 0) {
+		free(buf);
+		return (br_x509_certificate){0};
+	}
+
+	return (br_x509_certificate){.data = buf, .data_len = len};
+}
+</pre>
+</div>
 </section>
 <section class="Sh">
 <h1 class="Sh" id="SEE_ALSO"><a class="permalink" href="#SEE_ALSO">SEE
