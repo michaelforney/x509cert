@@ -54,6 +54,7 @@ add_alt(const char *name)
 	alt->tag = X509CERT_SAN_DNSNAME;
 	alt->len = strlen(name);
 	alt->val = name;
+	alt->enc = NULL;
 }
 
 /* bearssl's secret key decoder drops the public key part, so
