@@ -6,8 +6,7 @@
 .Nm x509cert_sign ,
 .Nm x509cert_encode_req ,
 .Nm x509cert_encode_cert ,
-.Nm x509cert_encode_dn ,
-.Nm x509cert_uint
+.Nm x509cert_encode_dn
 .Nd construct and sign X.509 certificates and certificate requests
 .Pp
 .Nm x509cert_dn_string_rdn_len ,
@@ -30,8 +29,6 @@ string representation
 .Ft size_t
 .Fn x509cert_encode_dn "const struct x509cert_dn *" "unsigned char *"
 .Vt x509cert_encoder x509cert_dn_encoder ;
-.Ft void
-.Fn x509cert_uint "struct x509cert_item *" "unsigned char *" "size_t"
 .Ft size_t
 .Fn x509cert_dn_string_rdn_len "const char *"
 .Ft int
@@ -248,15 +245,6 @@ function DER-encodes an X.501
 .Em DistinguishedName
 into a buffer.
 RDNs with multiple attributes are not supported.
-.Pp
-The
-.Fn x509cert_uint
-function initializes an ASN.1
-.Em INTEGER
-from its unsigned big-endian bytestring representation.
-It strips any leading zeros and sets a custom encoder which writes
-a leading zero if the integer is 0 or has its highest bit set.
-This ensures correct DER encoding.
 .Pp
 The
 .Fn x509cert_dn_string_rdn_len

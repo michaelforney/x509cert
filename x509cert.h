@@ -44,16 +44,6 @@ struct x509cert_item {
  */
 size_t x509cert_encode(const struct x509cert_item *, unsigned char *);
 
-/*
- * Initialize an unsigned ASN.1 INTEGER from its big-endian byte-string
- * representation.
- *
- * This takes care of stripping unnecessary leading zeroes, or
- * adding a leading zero if the highest bit is set (to prevent
- * interpretation as a negative integer).
- */
-void x509cert_uint(struct x509cert_item *, const unsigned char *, size_t);
-
 struct x509cert_skey {
 	int type;
 	union {
