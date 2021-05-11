@@ -33,7 +33,7 @@ libx509cert.a: $(OBJ)
 x509cert: x509cert.o libx509cert.a
 	$(CC) $(LDFLAGS) -o $@ x509cert.o libx509cert.a $(LDLIBS)
 
-install:
+install: x509cert libx509cert.a
 	mkdir -p $(DESTDIR)$(BINDIR)
 	cp x509cert $(DESTDIR)$(BINDIR)/
 	mkdir -p $(DESTDIR)$(MANDIR)/man1
