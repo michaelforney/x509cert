@@ -100,8 +100,10 @@ Most functions in <code class="Nm">libx509cert</code> follow a similar pattern.
     <code class="Dv">NULL</code>, the default encoder is used, which encodes
     <var class="Va">tag</var> and <var class="Va">len</var>, then copies
     <var class="Va">len</var> bytes from <var class="Va">val</var> into the
-    buffer. Otherwise, the <var class="Va">enc</var> function is called with the
-    item as its argument, which encodes the item some other way. In this case,
+    buffer. If <var class="Va">tag</var> is 0, <var class="Va">val</var> is
+    assumed to be pre-encoded, and no tag-length header is added. Otherwise, the
+    <var class="Va">enc</var> function is called with the item as its argument,
+    which encodes the item some other way. In this case,
     <var class="Va">val</var> might point to some structure, with
     <var class="Va">tag</var> and <var class="Va">len</var> unused.</p>
 <p class="Pp">The <code class="Fn">x509cert_sign</code>() function DER-encodes a
