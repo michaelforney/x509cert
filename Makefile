@@ -6,10 +6,11 @@ BINDIR=$(PREFIX)/bin
 LIBDIR=$(PREFIX)/lib
 INCDIR=$(PREFIX)/include
 MANDIR=$(PREFIX)/share/man
--include config.mk
 
 CFLAGS+=-Wall -Wpedantic
 LDLIBS=-l bearssl
+
+-include config.mk
 
 OBJ=\
 	cert.o\
