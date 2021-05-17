@@ -1,0 +1,8 @@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: x509cert
+Description: X.509 certificate and certificate request library
+Version: @version@
+Libs: -L${libdir} -lx509cert -lbearssl
+Cflags: -I${includedir}
