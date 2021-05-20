@@ -28,7 +28,7 @@ xmalloc(size_t n)
 	void *p;
 
 	p = malloc(n);
-	if (!p) {
+	if (!p && n) {
 		perror(NULL);
 		exit(1);
 	}

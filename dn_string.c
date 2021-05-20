@@ -8,6 +8,8 @@ x509cert_dn_string_rdn_len(const char *s)
 {
 	size_t len;
 
+	if (!*s)
+		return 0;
 	len = 1;
 	for (; *s; ++s) {
 		switch (*s) {
@@ -77,7 +79,7 @@ x509cert_parse_dn_string(struct x509cert_rdn *rdn, char *s)
 	unsigned long sub;
 	int i, j, n, space;
 
-	do {
+	while (*s) {
 		rdn->oid = NULL;
 		if (isalpha((unsigned char)*s)) {
 			key = s;
@@ -156,8 +158,9 @@ x509cert_parse_dn_string(struct x509cert_rdn *rdn, char *s)
 		rdn->val.len = buf - (unsigned char *)rdn->val.val;
 		++rdn;
 		/* multi-valued RDNs are not supported; assume no '+' */
-	} while (*s == ',' && *++s);
-	if (*s)
-		return 0;
-	return 1;
+		if (*s != ',')
+			break;
+		++s;
+	}
+	return !*s;
 }
