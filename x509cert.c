@@ -17,8 +17,8 @@ static void
 usage(void)
 {
 	fprintf(stderr,
-		"usage: %s [-C] [-a altname]... [-c issuercert] [-k issuerkey] [-b notbefore] [-d duration] [-s serial] subject key\n"
-		"       %s -r [-a altname]... subject key\n", argv0, argv0);
+		"usage: %s [-C] [-a altname]... [-c issuercert] [-k issuerkey] [-b notbefore] [-d duration] [-s serial] key [subject]\n"
+		"       %s -r [-a altname]... key [subject]\n", argv0, argv0);
 	exit(1);
 }
 
@@ -406,22 +406,24 @@ main(int argc, char *argv[])
 	default:
 		usage();
 	} ARGEND
-	if (argc < 2 || argc > 3 || (rflag && (certfile || cert.ca)) || !certfile != !keyfile)
+	if (argc < 1 || argc > 2 || (rflag && (certfile || cert.ca)) || !certfile != !keyfile)
 		usage();
 
-	subject.rdn_len = x509cert_dn_string_rdn_len(argv[0]);
-	subject.rdn = xmallocarray(subject.rdn_len, sizeof(subject.rdn[0]));
-	if (!x509cert_parse_dn_string(subject.rdn, argv[0])) {
-		fputs("invalid subject name\n", stderr);
-		return 1;
+	if (argc > 1) {
+		subject.rdn_len = x509cert_dn_string_rdn_len(argv[1]);
+		subject.rdn = xmallocarray(subject.rdn_len, sizeof(subject.rdn[0]));
+		if (!x509cert_parse_dn_string(subject.rdn, argv[1])) {
+			fputs("invalid subject name\n", stderr);
+			return 1;
+		}
 	}
 
 	if (keyfile) {
-		load_key(argv[1], &req.pkey, NULL);
+		load_key(argv[0], &req.pkey, NULL);
 		load_key(keyfile, NULL, &skey);
 		load_cert(certfile, &cert.issuer);
 	} else {
-		load_key(argv[1], &req.pkey, &skey);
+		load_key(argv[0], &req.pkey, &skey);
 		cert.issuer = req.subject;
 	}
 

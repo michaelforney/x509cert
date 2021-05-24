@@ -13,23 +13,16 @@
 .Op Fl b Ar notbefore
 .Op Fl d Ar duration
 .Oo Fl a Ar altname Oc Ns ...
-.Ar subject
 .Ar key
+.Op Ar subject
 .Nm
 .Fl r
 .Oo Fl a Ar altname Oc Ns ...
-.Ar subject
 .Ar key
+.Op Ar subject
 .Sh DESCRIPTION
 .Nm
 is a tool to generate X.509 certificates and certificate requests.
-.Pp
-The
-.Ar subject
-is given as an RFC 4514 string representation of an X.501
-DistinguishedName.
-For example,
-.Qq C=US,CN=example.com .
 .Pp
 The
 .Ar key
@@ -37,6 +30,14 @@ must be a PEM-encoded RSA or EC private key in raw or PKCS#8 format.
 Keys can be generated using the
 .Xr brssl 1
 tool.
+.Pp
+The
+.Ar subject
+is given as an RFC 4514 string representation of an X.501
+DistinguishedName.
+For example,
+.Qq C=US,CN=example.com .
+If not given, an empty DN is used.
 .Sh OPTIONS
 .Bl -tag -width Ds
 .It Fl C
