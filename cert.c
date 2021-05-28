@@ -4,36 +4,45 @@
 #include "inner.h"
 
 static size_t
-encode_tm(const struct tm *tm, unsigned char *buf)
+encode_time(time_t t, unsigned char *buf)
 {
 	static const char dec[] = "0123456789";
+	struct tm tm;
 	char str[16];
 	struct x509cert_item item = {X509CERT_ASN1_GENERALIZEDTIME, 15, str};
 	int x;
 
 	if (buf) {
-		x = tm->tm_year;
+		if (!gmtime_r(&t, &tm))
+			return 0;
+		x = tm.tm_year;
 		str[3] = dec[x % 10], x /= 10;
 		str[2] = dec[x % 10], x = x / 10 + 19;
 		str[1] = dec[x % 10], x /= 10;
 		str[0] = dec[x % 10];
-		x = tm->tm_mon + 1;
+		x = tm.tm_mon + 1;
 		str[5] = dec[x % 10], x /= 10;
 		str[4] = dec[x % 10];
-		x = tm->tm_mday;
+		x = tm.tm_mday;
 		str[7] = dec[x % 10], x /= 10;
 		str[6] = dec[x % 10];
-		x = tm->tm_hour;
+		x = tm.tm_hour;
 		str[9] = dec[x % 10], x /= 10;
 		str[8] = dec[x % 10];
-		x = tm->tm_min;
+		x = tm.tm_min;
 		str[11] = dec[x % 10], x /= 10;
 		str[10] = dec[x % 10];
-		x = tm->tm_sec;
+		x = tm.tm_sec;
 		str[13] = dec[x % 10], x /= 10;
 		str[12] = dec[x % 10];
 		str[14] = 'Z';
 		str[15] = '\0';
+	}
+	if (t < 2524608000) {
+		/* use UTCTime for years before 2050 */
+		item.tag = X509CERT_ASN1_UTCTIME;
+		item.len -= 2;
+		item.val = str + 2;
 	}
 	return x509cert_encode(&item, buf);
 }
@@ -73,7 +82,7 @@ x509cert_encode_cert(const struct x509cert_cert *cert, unsigned char *buf)
 		return 0;
 	item.len += len;
 	item.len += x509cert_encode(&cert->issuer, NULL);
-	validity.len = encode_tm(NULL, NULL) + encode_tm(NULL, NULL);
+	validity.len = encode_time(cert->notbefore, NULL) + encode_time(cert->notafter, NULL);
 	item.len += x509cert_encode(&validity, NULL);
 	item.len += x509cert_encode(&cert->req->subject, NULL);
 	item.len += x509cert_encode_pkey(&cert->req->pkey, NULL);
@@ -89,7 +98,7 @@ x509cert_encode_cert(const struct x509cert_cert *cert, unsigned char *buf)
 	len = x509cert_encode(&item, NULL);
 
 	if (buf) {
-		struct tm tm;
+		size_t timelen;
 		unsigned char *pos = buf;
 
 		pos += x509cert_encode(&item, pos);
@@ -99,12 +108,12 @@ x509cert_encode_cert(const struct x509cert_cert *cert, unsigned char *buf)
 		pos += x509cert_encode_sign_alg(cert->key_type, cert->hash_id, pos);
 		pos += x509cert_encode(&cert->issuer, pos);
 		pos += x509cert_encode(&validity, pos);
-		if (!gmtime_r(&cert->notbefore, &tm))
+		if (!(timelen = encode_time(cert->notbefore, pos)))
 			return 0;
-		pos += encode_tm(&tm, pos);
-		if (!gmtime_r(&cert->notafter, &tm))
+		pos += timelen;
+		if (!(timelen = encode_time(cert->notafter, pos)))
 			return 0;
-		pos += encode_tm(&tm, pos);
+		pos += timelen;
 		pos += x509cert_encode(&cert->req->subject, pos);
 		pos += x509cert_encode_pkey(&cert->req->pkey, pos);
 		if (exts.len > 0) {
