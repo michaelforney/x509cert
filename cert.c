@@ -1,3 +1,4 @@
+#define _POSIX_C_SOURCE 200809L  /* for gmtime_r */
 #include <assert.h>
 #include "x509cert.h"
 #include "inner.h"
@@ -88,7 +89,7 @@ x509cert_encode_cert(const struct x509cert_cert *cert, unsigned char *buf)
 	len = x509cert_encode(&item, NULL);
 
 	if (buf) {
-		struct tm *tm;
+		struct tm tm;
 		unsigned char *pos = buf;
 
 		pos += x509cert_encode(&item, pos);
@@ -98,12 +99,12 @@ x509cert_encode_cert(const struct x509cert_cert *cert, unsigned char *buf)
 		pos += x509cert_encode_sign_alg(cert->key_type, cert->hash_id, pos);
 		pos += x509cert_encode(&cert->issuer, pos);
 		pos += x509cert_encode(&validity, pos);
-		if (!(tm = gmtime(&cert->notbefore)))
+		if (!gmtime_r(&cert->notbefore, &tm))
 			return 0;
-		pos += encode_tm(tm, pos);
-		if (!(tm = gmtime(&cert->notafter)))
+		pos += encode_tm(&tm, pos);
+		if (!gmtime_r(&cert->notafter, &tm))
 			return 0;
-		pos += encode_tm(tm, pos);
+		pos += encode_tm(&tm, pos);
 		pos += x509cert_encode(&cert->req->subject, pos);
 		pos += x509cert_encode_pkey(&cert->req->pkey, pos);
 		if (exts.len > 0) {
