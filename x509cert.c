@@ -391,6 +391,10 @@ main(int argc, char *argv[])
 		break;
 	case 'd':
 		duration = strtoul(EARGF(usage()), &end, 0);
+		switch (*end) {
+		case 'd': duration *= 86400; ++end; break;
+		case 'y': duration *= 31536000; ++end; break;
+		}
 		if (*end)
 			usage();
 		break;
