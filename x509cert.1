@@ -71,6 +71,11 @@ If followed by
 or
 .Sq y ,
 the duration is in units of days or years respectively.
+If the duration is
+.Sq -1 ,
+the time 99991231235959Z is used for the
+.Em notAfter
+field, meaning there is no well-defined expiration.
 If not specified, defaults to 30 days.
 .It Fl a
 Add a

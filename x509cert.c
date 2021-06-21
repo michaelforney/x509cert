@@ -440,7 +440,11 @@ main(int argc, char *argv[])
 		parse_serial(serial);
 		if (!cert.notbefore)
 			cert.notbefore = time(NULL);
-		cert.notafter = cert.notbefore + duration;
+		/*
+		unix time 253402300799 is 99991231235959Z, meaning
+		"no well-defined expiration date"
+		*/
+		cert.notafter = duration == -1 ? 253402300799 : cert.notbefore + duration;
 		cert.key_type = skey.type;
 		cert.hash_id = br_sha256_ID;
 		item.enc = x509cert_cert_encoder;
