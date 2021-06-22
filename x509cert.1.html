@@ -30,8 +30,8 @@
       <var class="Ar">serial</var>] [<code class="Fl">-b</code>
       <var class="Ar">notbefore</var>] [<code class="Fl">-d</code>
       <var class="Ar">duration</var>] [<code class="Fl">-a</code>
-      <var class="Ar">altname</var>]... <var class="Ar">subject</var>
-      <var class="Ar">key</var></td>
+      <var class="Ar">altname</var>]... <var class="Ar">key</var>
+      [<var class="Ar">subject</var>]</td>
   </tr>
 </table>
 <br/>
@@ -39,8 +39,8 @@
   <tr>
     <td><code class="Nm">x509cert</code></td>
     <td><code class="Fl">-r</code> [<code class="Fl">-a</code>
-      <var class="Ar">altname</var>]... <var class="Ar">subject</var>
-      <var class="Ar">key</var></td>
+      <var class="Ar">altname</var>]... <var class="Ar">key</var>
+      [<var class="Ar">subject</var>]</td>
   </tr>
 </table>
 </section>
@@ -48,12 +48,12 @@
 <h1 class="Sh" id="DESCRIPTION"><a class="permalink" href="#DESCRIPTION">DESCRIPTION</a></h1>
 <code class="Nm">x509cert</code> is a tool to generate X.509 certificates and
   certificate requests.
-<p class="Pp">The <var class="Ar">subject</var> is given as an RFC 4514 string
-    representation of an X.501 DistinguishedName. For example,
-    &#x201C;C=US,CN=example.com&#x201D;.</p>
 <p class="Pp">The <var class="Ar">key</var> must be a PEM-encoded RSA or EC
     private key in raw or PKCS#8 format. Keys can be generated using the
     <a class="Xr">brssl(1)</a> tool.</p>
+<p class="Pp">The <var class="Ar">subject</var> is given as an RFC 4514 string
+    representation of an X.501 DistinguishedName. For example,
+    &#x201C;C=US,CN=example.com&#x201D;. If not given, an empty DN is used.</p>
 </section>
 <section class="Sh">
 <h1 class="Sh" id="OPTIONS"><a class="permalink" href="#OPTIONS">OPTIONS</a></h1>
@@ -77,8 +77,12 @@
   <dd>The Unix time at which the certificate becomes valid. If not specified,
       defaults to the current time.</dd>
   <dt><a class="permalink" href="#d"><code class="Fl" id="d">-d</code></a></dt>
-  <dd>The duration for which the certificate is valid, in seconds. If not
-      specified, defaults to 30 days.</dd>
+  <dd>The duration for which the certificate is valid, in seconds. If followed
+      by &#x2018;d&#x2019; or &#x2018;y&#x2019;, the duration is in units of
+      days or years respectively. If the duration is &#x2018;-1&#x2019;, the
+      time 99991231235959Z is used for the <i class="Em">notAfter</i> field,
+      meaning there is no well-defined expiration. If not specified, defaults to
+      30 days.</dd>
   <dt><a class="permalink" href="#a"><code class="Fl" id="a">-a</code></a></dt>
   <dd>Add a <i class="Em">subjectAltName</i> extension containing a
       <i class="Em">dNSName</i> given by <var class="Ar">altname</var>. May be
