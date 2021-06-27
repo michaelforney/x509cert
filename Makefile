@@ -1,7 +1,7 @@
 .POSIX:
 .PHONY: all install clean
 
-VERSION=0.3
+VERSION=0.4
 PREFIX=/usr/local
 BINDIR=$(PREFIX)/bin
 LIBDIR=$(PREFIX)/lib
