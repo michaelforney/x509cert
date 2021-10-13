@@ -92,6 +92,13 @@ instead of a
 .Em Certificate .
 .El
 .Sh EXAMPLES
+Generate a private key with
+.Xr brssl 1
+and store it in
+.Pa key.pem .
+.Pp
+.Dl brssl skey -gen ec -rawpem key.pem
+.Pp
 Generate a self-signed certificate with a common name of example.com
 using the private key in
 .Pa key.pem .
