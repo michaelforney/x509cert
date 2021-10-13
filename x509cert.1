@@ -96,12 +96,12 @@ Generate a self-signed certificate with a common name of example.com
 using the private key in
 .Pa key.pem .
 .Pp
-.Dl x509cert CN=example.com key.pem > cert.pem
+.Dl x509cert key.pem CN=example.com > cert.pem
 .Pp
 Generate a certificate request for example.org with alternate name
 www.example.org.
 .Pp
-.Dl x509cert -r -a www.example.org CN=example.org key.pem > req.pem
+.Dl x509cert -r -a www.example.org key.pem CN=example.org > req.pem
 .Sh SEE ALSO
 .Xr brssl 1 ,
 .Xr x509cert 3
