@@ -75,6 +75,7 @@ x509cert_encode_cert(const struct x509cert_cert *cert, unsigned char *buf)
 	struct x509cert_item exts = {X509CERT_ASN1_SEQUENCE};
 	size_t len;
 
+	item.len += sizeof(ver);
 	x509cert_uint(&serial, cert->serial, sizeof(cert->serial));
 	item.len += x509cert_encode(&serial, NULL);
 	len = x509cert_encode_sign_alg(cert->key_type, cert->hash_id, NULL);
@@ -91,7 +92,6 @@ x509cert_encode_cert(const struct x509cert_cert *cert, unsigned char *buf)
 	if (cert->ca)
 		exts.len += encode_bc(cert->ca, NULL);
 	if (exts.len > 0) {
-		item.len += sizeof(ver);
 		optexts.len = x509cert_encode(&exts, NULL);
 		item.len += x509cert_encode(&optexts, NULL);
 	}
@@ -102,8 +102,7 @@ x509cert_encode_cert(const struct x509cert_cert *cert, unsigned char *buf)
 		unsigned char *pos = buf;
 
 		pos += x509cert_encode(&item, pos);
-		if (exts.len > 0)
-			pos += x509cert_copy(ver, pos);
+		pos += x509cert_copy(ver, pos);
 		pos += x509cert_encode(&serial, pos);
 		pos += x509cert_encode_sign_alg(cert->key_type, cert->hash_id, pos);
 		pos += x509cert_encode(&cert->issuer, pos);
