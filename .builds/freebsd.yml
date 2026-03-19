@@ -4,4 +4,4 @@ packages:
 sources:
 - https://git.sr.ht/~mcf/x509cert
 tasks:
-- build: CFLAGS='-I /usr/local/include' LDFLAGS='-L /usr/local/lib' make -C x509cert
+- build: CC=cc CFLAGS='-I /usr/local/include' LDFLAGS='-L /usr/local/lib' make -C x509cert
